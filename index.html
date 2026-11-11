@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI翻译系统 - 合集管理（演示）</title>
+<style>
+:root{
+  --blue:#409eff; --blue-l:#ecf5ff; --blue-b:#b3d8ff;
+  --green:#67c23a; --green-l:#f0f9eb; --green-b:#e1f3d8;
+  --orange:#e6a23c; --orange-l:#fdf6ec; --orange-b:#faecd8;
+  --red:#f56c6c; --red-l:#fef0f0; --red-b:#fde2e2;
+  --t1:#303133; --t2:#606266; --t3:#909399; --t4:#c0c4cc;
+  --bd:#ebeef5; --bd2:#dcdfe6; --bg:#f0f2f5;
+  --side:#304156; --side-hover:#263445;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;
+  font-size:12px;color:var(--t1);background:var(--bg);-webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#c8cdd4;border-radius:4px}
+::-webkit-scrollbar-track{background:transparent}
+
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* ============ 侧边栏 ============ */
+.sidebar{width:172px;flex:0 0 172px;background:var(--side);overflow-y:auto;overflow-x:hidden;padding-bottom:20px}
+.sidebar::-webkit-scrollbar-thumb{background:#4a5c6e}
+.logo{height:50px;display:flex;align-items:center;gap:8px;padding-left:16px;color:#fff;font-size:13px;letter-spacing:.5px}
+.logo .logo-dot{width:18px;height:18px;border-radius:4px;background:linear-gradient(135deg,#409eff,#1f6fd0);
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700}
+.mi{display:flex;align-items:center;height:44px;padding-left:16px;cursor:pointer;color:#bfcbd9;
+  font-size:13px;position:relative;user-select:none;transition:.15s}
+.mi:hover{background:var(--side-hover)}
+.mi .ico{width:16px;height:16px;margin-right:9px;flex:0 0 16px;opacity:.9}
+.mi .arrow{margin-left:auto;margin-right:14px;font-size:9px;color:#8a98a8;transition:.2s;transform:rotate(0)}
+.mi.open>.arrow{transform:rotate(90deg)}
+.mi.active{background:var(--side-hover);color:#fff}
+.mi .text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{display:none}
+.sub.show{display:block}
+.sub .si{height:38px;line-height:38px;padding-left:41px;color:#bfcbd9;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.sub .si:hover{background:var(--side-hover)}
+.sub .si.active{background:#263445;color:#fff}
+
+/* ============ 主区 ============ */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:50px;flex:0 0 50px;background:#fff;display:flex;align-items:center;padding:0 16px;gap:10px;
+  border-bottom:1px solid #e8eaec}
+.burger{width:16px;cursor:pointer;opacity:.55}
+.crumb{font-size:13px;color:#606266;display:flex;align-items:center;gap:6px}
+.crumb .sep{color:#c0c4cc}
+.crumb .cur{color:#303133}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:12.5px;color:#606266}
+.fault{color:#e6a23c;font-weight:600;letter-spacing:.2px}
+.top-search{width:160px;height:28px;border:1px solid var(--bd2);border-radius:14px;display:flex;align-items:center;
+  padding:0 10px;gap:6px;background:#fff;color:#c0c4cc}
+.top-search input{border:0;outline:0;font-size:12px;width:100%;color:#606266;background:transparent}
+.top-search input::placeholder{color:#c0c4cc}
+.fullscreen{display:flex;align-items:center;gap:4px;cursor:pointer;color:#606266}
+.avatar-box{display:flex;align-items:center;gap:6px;cursor:pointer}
+.avatar{width:24px;height:24px;border-radius:50%;background:#409eff;color:#fff;display:flex;align-items:center;
+  justify-content:center;font-size:11px}
+
+/* 标签栏 */
+.tagsbar{height:35px;flex:0 0 35px;background:#fff;display:flex;align-items:center;gap:5px;padding:0 10px;
+  border-bottom:1px solid #e8eaec;overflow-x:auto}
+.tag{display:flex;align-items:center;gap:6px;height:24px;padding:0 7px;border:1px solid #d8dce5;background:#fff;
+  color:#495060;font-size:12px;cursor:pointer;border-radius:2px;white-space:nowrap}
+.tag .dot{width:8px;height:8px;border-radius:50%;background:transparent}
+.tag.active{color:var(--blue);border-color:#b3d8ff;background:#ecf5ff}
+.tag.active .dot{background:var(--blue)}
+.tag .x{font-size:12px;color:#98a1ac;line-height:1;padding:0 1px}
+.tag .x:hover{color:#f56c6c;background:#f0f0f0;border-radius:50%}
+
+.content{flex:1;overflow:auto;background:var(--bg);padding:10px 12px}
+
+/* ============ 卡片 / 通用 ============ */
+.card{background:#fff;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.list-card{padding:14px 16px 0}
+.detail-card{padding:14px 18px 0}
+
+.btn{height:28px;padding:0 15px;font-size:12px;border-radius:3px;border:1px solid var(--bd2);background:#fff;
+  color:var(--t2);cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:.15s;white-space:nowrap}
+.btn:hover{color:var(--blue);border-color:#c6e2ff;background:#ecf5ff}
+.btn-primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn-primary:hover{background:#66b1ff;border-color:#66b1ff;color:#fff}
+.btn-plain{border-color:var(--bd2);color:var(--t2);background:#fff}
+.btn-plain:hover{color:var(--blue);border-color:#c6e2ff;background:#ecf5ff}
+.btn i{font-style:normal;display:inline-flex;align-items:center}
+.btn-icon{width:28px;height:28px;border:1px solid var(--bd2);background:#fff;color:var(--t3);border-radius:3px;
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.btn-icon:hover{color:var(--blue);border-color:#c6e2ff;background:#ecf5ff}
+
+.f-input{height:28px;border:1px solid #e2e6eb;background:#f7f8fa;border-radius:4px;display:flex;align-items:center;
+  padding:0 8px;gap:5px;color:#c0c4cc}
+.f-input input{border:0;outline:0;background:transparent;font-size:12px;color:#606266;width:118px}
+.f-input input::placeholder{color:#bfc5cd}
+.f-input .sico{opacity:.45;flex:0 0 12px}
+.f-select{height:28px;border:1px solid #e2e6eb;background:#f7f8fa;border-radius:4px;display:flex;align-items:center;
+  padding:0 8px;gap:8px;color:#bfc5cd;font-size:12px;cursor:pointer;position:relative;white-space:nowrap}
+.f-select.has{color:#606266}
+.f-select .caret{font-size:8px;color:#b7bec7;margin-left:auto}
+.f-select select{position:absolute;inset:0;opacity:0;cursor:pointer}
+.filter-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.filter-row .spacer{flex:1}
+
+/* 表格 */
+.tbl{width:100%;border-collapse:collapse;table-layout:fixed}
+.tbl th{background:#f7f8fa;color:#606266;font-weight:500;font-size:12px;text-align:center;
+  padding:10px 6px;border-bottom:1px solid var(--bd);white-space:nowrap}
+.tbl td{padding:11px 6px;border-bottom:1px solid var(--bd);font-size:12px;color:var(--t2);
+  text-align:center;word-break:break-all;line-height:1.5}
+.tbl td.l{text-align:left;padding-left:10px}
+.tbl tr:hover td{background:#fafcff}
+.tbl .ck{width:15px;height:15px;accent-color:var(--blue);cursor:pointer;vertical-align:middle}
+.link{color:var(--blue);cursor:pointer;white-space:nowrap}
+.link:hover{text-decoration:underline}
+.link-sep{color:#dcdfe6;margin:0 5px}
+.ops{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:nowrap}
+.name-cell{color:#303133;cursor:pointer}
+.name-cell:hover{color:var(--blue);text-decoration:underline}
+
+.tag-s{display:inline-flex;align-items:center;height:20px;padding:0 5px;border-radius:2px;font-size:11.5px;
+  border:1px solid transparent;white-space:nowrap}
+.t-green{background:var(--green-l);border-color:var(--green-b);color:var(--green)}
+.t-orange{background:var(--orange-l);border-color:var(--orange-b);color:var(--orange)}
+.t-red{background:var(--red-l);border-color:var(--red-b);color:var(--red)}
+.t-blue{background:var(--blue-l);border-color:var(--blue-b);color:var(--blue)}
+.t-gray{background:#f4f4f5;border-color:#e9e9eb;color:#909399}
+.p-orange{color:var(--orange)}
+.p-green{color:var(--green)}
+.p-red{color:var(--red)}
+.dot-warn{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid var(--red);color:var(--red);
+  font-size:9px;line-height:10px;text-align:center;vertical-align:middle;margin-left:3px;font-style:normal}
+
+.tbl-footer{display:flex;align-items:center;padding:12px 4px;font-size:12px;color:var(--t3)}
+.pager{margin-left:auto;display:flex;align-items:center;gap:6px}
+.pg{min-width:26px;height:26px;padding:0 6px;border-radius:2px;background:#f4f4f5;color:#606266;display:flex;
+  align-items:center;justify-content:center;cursor:pointer;font-size:12px}
+.pg:hover{color:var(--blue)}
+.pg.on{background:var(--blue);color:#fff}
+.pg.ellipsis{background:transparent;cursor:default}
+.pgsize{height:26px;border:1px solid var(--bd2);border-radius:2px;padding:0 6px;color:#606266;font-size:12px;
+  display:flex;align-items:center;gap:10px;cursor:pointer;margin-left:6px}
+
+/* 详情页头 */
+.detail-head{display:flex;align-items:center;padding-bottom:12px}
+.detail-head .cur{font-size:13px;color:var(--t2)}
+.detail-head .cur b{color:#303133;font-weight:600}
+.detail-head .r{margin-left:auto}
+.steps{display:flex;align-items:center;gap:26px;border-bottom:1px solid var(--bd);margin-bottom:14px}
+.step{padding:0 1px 10px;font-size:13px;color:var(--t2);cursor:pointer;position:relative;top:1px;border-bottom:2px solid transparent}
+.step:hover{color:var(--blue)}
+.step.on{color:var(--blue);border-bottom-color:var(--blue);font-weight:500}
+
+.subtabs{display:flex;align-items:center;gap:22px;margin:2px 0 14px}
+.stab{font-size:12.5px;color:var(--t2);cursor:pointer;padding-bottom:5px;border-bottom:2px solid transparent}
+.stab:hover{color:var(--blue)}
+.stab.on{color:var(--blue);border-bottom-color:var(--blue);font-weight:500}
+
+.actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+.status-tabs{display:flex;align-items:center;gap:15px}
+.st{font-size:12px;color:var(--t3);cursor:pointer;white-space:nowrap}
+.st:hover{color:var(--blue)}
+.st.on{color:#303133;font-weight:600}
+.right-filters{margin-left:auto;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+
+.chips{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.chip{height:24px;padding:0 11px;border:1px solid var(--bd2);border-radius:12px;font-size:12px;color:var(--t2);
+  display:flex;align-items:center;cursor:pointer;background:#fff}
+.chip:hover{color:var(--blue);border-color:#c6e2ff}
+.chip.on{color:var(--blue);border-color:var(--blue-b);background:var(--blue-l)}
+
+.tbl-wrap{overflow-x:auto}
+.tbl-wide{min-width:1600px}
+
+/* 术语提取 */
+.term-wrap{display:flex;border:1px solid var(--bd);border-radius:3px;min-height:430px}
+.term-left{width:240px;flex:0 0 240px;border-right:1px solid var(--bd);padding:12px}
+.term-left .btn{width:100%;justify-content:center;margin-bottom:10px}
+.term-file{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:3px;cursor:pointer;font-size:12px;color:#606266}
+.term-file:hover{background:#f5f7fa}
+.term-file .fl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.term-right{flex:1;padding:14px 16px;display:flex;flex-direction:column}
+.term-right .lbl{font-size:12.5px;color:#303133;margin-bottom:9px}
+.term-right .sel{height:32px;border:1px solid var(--bd2);border-radius:3px;display:flex;align-items:center;
+  padding:0 10px;color:#c0c4cc;font-size:12px;cursor:pointer}
+.term-right .foot{margin-top:auto;display:flex;justify-content:flex-end}
+
+/* 弹窗 */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;
+  z-index:1000;padding-top:12vh;animation:fade .18s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.dlg{background:#fff;border-radius:4px;width:520px;max-width:94vw;box-shadow:0 8px 30px rgba(0,0,0,.2);
+  animation:pop .2s ease;max-height:78vh;display:flex;flex-direction:column}
+@keyframes pop{from{transform:translateY(-12px);opacity:.6}to{transform:none;opacity:1}}
+.dlg-h{padding:16px 20px 10px;font-size:15px;color:#303133;display:flex;align-items:center}
+.dlg-h .x{margin-left:auto;color:#c0c4cc;cursor:pointer;font-size:15px;line-height:1}
+.dlg-h .x:hover{color:#909399}
+.dlg-b{padding:6px 20px 14px;overflow:auto;font-size:12.5px;color:#606266}
+.dlg-f{padding:10px 20px 16px;display:flex;justify-content:flex-end;gap:10px}
+.dlg-f .btn{height:30px;padding:0 18px}
+.form-item{display:flex;margin-bottom:16px;align-items:flex-start}
+.form-item .lab{width:104px;flex:0 0 104px;text-align:right;padding-right:12px;line-height:30px;color:#606266;font-size:12.5px;white-space:nowrap}
+.form-item .lab .req{color:#f56c6c;margin-right:3px}
+.form-item .ctl{flex:1;min-width:0}
+.inp{width:100%;height:30px;border:1px solid var(--bd2);border-radius:3px;padding:0 10px;font-size:12.5px;
+  color:#303133;outline:0;font-family:inherit}
+.inp:focus{border-color:var(--blue)}
+.inp[disabled]{background:#f5f7fa;color:#c0c4cc;cursor:not-allowed}
+textarea.inp{height:auto;padding:7px 10px;resize:vertical;line-height:1.6}
+.sel2{width:100%;height:30px;border:1px solid var(--bd2);border-radius:3px;padding:0 8px;font-size:12.5%;
+  color:#303133;outline:0;background:#fff;font-family:inherit}
+.counter{text-align:right;font-size:11.5px;color:#c0c4cc;margin-top:3px}
+.sel-fake{position:relative;display:flex;align-items:center;height:30px;border:1px solid var(--bd2);border-radius:3px;
+  padding:0 10px;font-size:12.5px;color:#303133;cursor:pointer;background:#fff;user-select:none}
+.sel-fake:hover{border-color:#c0c4cc}
+.sel-fake .caret{margin-left:auto;font-size:9px;color:#c0c4cc;transition:.2s}
+.sel-fake.open .caret{transform:rotate(180deg)}
+.sel-fake .dd{display:none;position:absolute;left:0;right:0;top:32px;background:#fff;border:1px solid var(--bd);
+  border-radius:3px;box-shadow:0 2px 12px rgba(0,0,0,.1);z-index:10;padding:4px 0}
+.sel-fake.open .dd{display:block}
+.sel-fake .dd div{padding:8px 10px;font-size:12.5px;color:#606266}
+.sel-fake .dd div:hover{background:#f5f7fa}
+.sel-fake .dd div.on{color:var(--blue);font-weight:600;background:var(--blue-l)}
+.sel-fake .dd div.off{color:#c0c4cc;cursor:not-allowed;background:#fff}
+.sel-fake .dd div.off:hover{background:#fff}
+.sel-fake .dd div.off em{font-style:normal;font-size:11px;color:#c0c4cc;margin-left:6px}
+.sel-fake.dis{background:#f5f7fa;cursor:not-allowed;color:#c0c4cc}
+.sel-fake.dis:hover{border-color:var(--bd2)}
+.radio-group{display:flex;align-items:center;gap:22px;height:30px}
+.radio-group .rd{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:#606266;cursor:pointer;user-select:none}
+.radio-group .rd i{position:relative;flex:0 0 auto;width:14px;height:14px;border:1px solid #dcdfe6;border-radius:50%;
+  box-sizing:border-box;background:#fff;transition:border-color .2s,background .2s}
+.radio-group .rd:hover i{border-color:var(--blue)}
+.radio-group .rd.on{color:var(--blue)}
+.radio-group .rd.on i{border-color:var(--blue);background:var(--blue)}
+.radio-group .rd.on i::after{content:'';position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;
+  border-radius:50%;background:#fff}
+.radio-group .rd.off{color:#c0c4cc;cursor:not-allowed}
+.radio-group .rd.off i{border-color:#e4e7ed;background:#f5f7fa}
+.radio-group .rd.off:hover i{border-color:#e4e7ed}
+.radio-group .rd em{font-style:normal;font-size:11px;color:#c0c4cc}
+
+/* 视频弹窗 */
+.vmask{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1100;display:flex;align-items:center;justify-content:center}
+.vbox{width:480px;background:#fff;border-radius:4px;padding:14px 14px 10px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.vbox .vh{display:flex;align-items:center;font-size:14px;color:#303133;margin-bottom:10px;padding:0 2px}
+.vbox .vh .x{margin-left:auto;cursor:pointer;color:#c0c4cc}
+.screen{height:330px;border-radius:2px;background:radial-gradient(120% 90% at 30% 20%,#3a2b33 0%,#1c1418 55%,#0c0a0b 100%);
+  position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.screen .ph{color:#6b5a63;font-size:12px;letter-spacing:2px;text-align:center}
+.screen .ph .big{font-size:20px;color:#8d7681;letter-spacing:4px;margin-bottom:8px}
+.vc{display:flex;align-items:center;gap:12px;padding:9px 4px 2px;color:#606266;font-size:11.5px}
+.vc .bar{flex:1;height:3px;background:#e4e7ed;border-radius:2px;position:relative;cursor:pointer}
+.vc .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--blue);border-radius:2px}
+.vc .ico{width:14px;height:14px;cursor:pointer;opacity:.75}
+.vc .ico:hover{opacity:1}
+.vc .txt{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* 抽屉 */
+.drawer-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1050}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:460px;max-width:92vw;background:#fff;z-index:1051;
+  display:flex;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,.12);animation:slide .22s ease}
+@keyframes slide{from{transform:translateX(30px);opacity:.7}to{transform:none;opacity:1}}
+.dw-h{height:48px;display:flex;align-items:center;padding:0 18px;border-bottom:1px solid var(--bd);font-size:14px;color:#303133}
+.dw-h .x{margin-left:auto;cursor:pointer;color:#c0c4cc}
+.dw-tabs{padding:12px 18px 0;display:flex;gap:20px;border-bottom:1px solid var(--bd)}
+.dw-body{flex:1;overflow:auto;padding:0 18px}
+.up-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #f2f3f5}
+.up-item .nm{flex:1;min-width:0}
+.up-item .nm .t{font-size:12.5px;color:#303133;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.up-item .nm .s{font-size:11.5px;color:#909399;margin-top:3px}
+.empty{padding:70px 0;text-align:center;color:#c0c4cc;font-size:12.5px}
+.empty .ei{font-size:34px;color:#e4e7ed;margin-bottom:10px}
+
+/* toast */
+#toast-wrap{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:2000;display:flex;
+  flex-direction:column;gap:10px;align-items:center;pointer-events:none}
+.toast{background:#f0f9eb;border:1px solid #e1f3d8;color:#67c23a;padding:9px 16px;border-radius:4px;font-size:12.5px;
+  box-shadow:0 2px 12px rgba(0,0,0,.08);display:flex;align-items:center;gap:7px;animation:tin .25s ease}
+.toast.err{background:#fef0f0;border-color:#fde2e2;color:#f56c6c}
+.toast.info{background:#f4f4f5;border-color:#e9e9eb;color:#909399}
+@keyframes tin{from{transform:translateY(-14px);opacity:0}to{transform:none;opacity:1}}
+
+/* 姓名卡 */
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.pcard{border:1px solid var(--bd);border-radius:3px;overflow:hidden;position:relative}
+.pcard .ph{height:112px;background:linear-gradient(135deg,#4a3b46,#241d22);display:flex;align-items:center;
+  justify-content:center;color:#a1909a;font-size:11px;letter-spacing:1px}
+.pcard .info{padding:7px 8px;font-size:12px;color:#303133;display:flex;align-items:center}
+.pcard .info .del{margin-left:auto;color:#f56c6c;cursor:pointer;font-size:11.5px}
+.pcard .info .role{color:#909399;font-size:11px;margin-left:6px}
+.hint{color:#909399;font-size:11.5px;line-height:1.7}
+
+/* 列表页统计 */
+.small-note{font-size:11.5px;color:#a8b0ba}
+
+/* ===== 提取字幕 · 框选页 ===== */
+.extract-card{background:#fff;border-radius:3px;padding:10px 0 12px;display:flex;flex-direction:column}
+.ex-head{display:flex;align-items:center;gap:14px;padding:2px 14px 10px}
+.ex-title{font-size:13.5px;color:#303133;font-weight:600;white-space:nowrap}
+.ex-nav{display:flex;align-items:center;gap:14px;position:relative;font-size:12px;color:#909399}
+.ex-link{cursor:pointer;white-space:nowrap}
+.ex-link:hover{color:var(--blue)}
+.ex-link.dis{color:#c8ccd4;cursor:not-allowed}
+.ep-list{position:absolute;left:58px;top:20px;background:#fff;border:1px solid var(--bd);border-radius:3px;
+  box-shadow:0 2px 12px rgba(0,0,0,.12);max-height:250px;overflow:auto;z-index:30;min-width:250px;padding:4px 0}
+.ep-item{padding:8px 12px;font-size:12px;color:#606266;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ep-item:hover{background:#f5f7fa}
+.ep-item.on{color:var(--blue);background:var(--blue-l)}
+.ex-tip{margin-left:auto;font-size:11.5px;color:#b3bac3}
+.video-stage{background:#000;margin:0 14px;height:calc(100vh - 300px);min-height:340px;display:flex;
+  align-items:center;justify-content:center;overflow:hidden}
+.vframe{position:relative;height:100%;aspect-ratio:9/16;background:#120d0d;overflow:hidden;user-select:none}
+.scene{position:absolute;inset:0;overflow:hidden;
+  background:
+    radial-gradient(46% 30% at 46% 22%, rgba(214,186,160,.42), rgba(214,186,160,0) 72%),
+    radial-gradient(40% 26% at 66% 46%, rgba(122,138,160,.28), rgba(122,138,160,0) 70%),
+    linear-gradient(180deg,#2a1f1d 0%,#1c1413 46%,#0e0a0a 100%)}
+.scene::before{content:'';position:absolute;left:14%;top:2%;width:78%;height:62%;
+  background:linear-gradient(160deg,rgba(196,170,146,.34),rgba(196,170,146,0) 62%);
+  filter:blur(10px)}
+.scene::after{content:'';position:absolute;left:0;right:0;bottom:0;height:58%;
+  background:linear-gradient(180deg,rgba(8,6,6,0),rgba(6,4,4,.88))}
+.sc-cap{position:absolute;left:6%;right:6%;top:79%;text-align:center;color:#fff;font-size:13.5px;
+  text-shadow:0 1px 3px rgba(0,0,0,.9);letter-spacing:.5px}
+.cropbox{position:absolute;background:rgba(0,0,0,.45);cursor:move;z-index:5;
+  outline:1px dashed rgba(255,255,255,.65);outline-offset:-1px}
+.cropbox .edge{position:absolute;background:rgba(255,255,255,.7);z-index:6}
+.edge.t{left:0;right:0;top:-2px;height:4px;cursor:ns-resize}
+.edge.b{left:0;right:0;bottom:-2px;height:4px;cursor:ns-resize}
+.edge.l{top:0;bottom:0;left:-2px;width:4px;cursor:ew-resize}
+.edge.r{top:0;bottom:0;right:-2px;width:4px;cursor:ew-resize}
+.vctrl{margin:0 14px;background:#000;padding-bottom:2px}
+.vbar{height:3px;background:rgba(255,255,255,.22);cursor:pointer;position:relative}
+.vbar i{position:absolute;left:0;top:0;bottom:0;background:var(--blue)}
+.vrow{display:flex;align-items:center;gap:14px;padding:7px 10px;color:#dcdfe6;font-size:12px}
+.vbtn{cursor:pointer;opacity:.85;font-size:12px;letter-spacing:.5px}
+.vbtn:hover{opacity:1}
+.vbtn.rate{font-size:11.5px}
+.vtime{font-variant-numeric:tabular-nums;color:#e6e6e6;font-size:11.5px}
+.vrow .spacer{flex:1}
+.ex-foot{display:flex;justify-content:flex-end;padding:12px 14px 0}
+.ex-steps{padding:4px 0 2px}
+.ex-step{display:flex;align-items:center;gap:12px;padding:9px 2px}
+.ex-step .ex-ico{width:20px;height:20px;flex:0 0 20px;border-radius:50%;border:1.5px solid #dcdfe6;
+  display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;transition:.2s}
+.ex-step[data-st="pending"] .ex-ico::after{content:'';width:6px;height:6px;border-radius:50%;background:#dcdfe6}
+.ex-step[data-st="active"] .ex-ico{border-color:var(--blue)}
+.ex-step[data-st="active"] .ex-ico::after{content:'';width:9px;height:9px;border:2px solid var(--blue);
+  border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+.ex-step[data-st="done"] .ex-ico{border-color:var(--green);background:var(--green)}
+.ex-step[data-st="done"] .ex-ico::after{content:'✓'}
+.ex-step .ex-txt .t{font-size:12.5px;color:#303133}
+.ex-step[data-st="pending"] .ex-txt .t{color:#909399}
+.ex-step .ex-txt .s{font-size:11.5px;color:#909399;margin-top:2px}
+.ex-step[data-st="active"] .ex-txt .s{color:var(--blue)}
+.ex-step[data-st="done"] .ex-txt .s{color:var(--green)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ex-hint{margin-top:10px;font-size:11.5px;color:#a8b0ba}
+.pip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:12px;
+  background:var(--blue-l);border:1px solid var(--blue-b);color:var(--blue);font-size:11.5px}
+.pip i{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.8)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo"><span class="logo-dot">Q</span> 视频管理后台</div>
+    <div id="menu"></div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <svg class="burger" width="16" height="14" viewBox="0 0 16 14" fill="#606266"><rect width="16" height="1.6" y="1"/><rect width="16" height="1.6" y="6.2"/><rect width="16" height="1.6" y="11.4"/></svg>
+      <div class="crumb" id="crumb"><span>AI翻译系统</span><span class="sep">/</span><span class="cur">合集管理</span></div>
+      <div class="top-right">
+        <span class="fault">百日0故障挑战 第434天</span>
+        <div class="top-search">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="#c0c4cc"><path d="M15.5 14.1l-4.2-4.2a6 6 0 10-1.4 1.4l4.2 4.2a1 1 0 001.4-1.4zM2 6.5a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z"/></svg>
+          <input placeholder="请输入搜索内容" id="globalSearch">
+        </div>
+        <div class="fullscreen" id="btnFullscreen">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="#606266"><path d="M1 1h5v1.6H2.6V6H1V1zm9 0h5v5h-1.6V2.6H10V1zM1 10h1.6v3.4H6V15H1v-5zm12.4 0H15v5h-5v-1.6h3.4V10z"/></svg>
+          全屏
+        </div>
+        <div class="avatar-box">
+          <div class="avatar">刘</div><span>刘同金</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="tagsbar" id="tagsbar"></div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<div id="overlay"></div>
+
+<script>
+/* =========================================================
+   数据
+   ========================================================= */
+const COLLECTIONS = [
+  {id:1507,name:'产品测试合集',eps:6,lang:'中文',team:'APP',intro:'测试',remark:'测试',ct:'2026-06-02 15:13:43'},
+  {id:4063,name:'他偏要宠（切割）',eps:73,lang:'',team:'社媒',intro:'-',remark:'中文审改',ct:'2026-11-10 17:41:53'},
+  {id:4062,name:'重回九四，我靠潮汐宝图养双胞胎（切割）',eps:108,lang:'',team:'社媒',intro:'-',remark:'中文审改',ct:'2026-11-10 16:59:30'},
+  {id:4061,name:'我本千金（切割）',eps:84,lang:'',team:'社媒',intro:'-',remark:'-',ct:'2026-11-10 16:18:52'},
+  {id:4060,name:'寻梦仙游记（双语）',eps:4,lang:'',team:'社媒',intro:'-',remark:'音乐分离',ct:'2026-11-10 15:32:27'},
+  {id:4059,name:'他偏要宠1',eps:73,lang:'',team:'社媒',intro:'-',remark:'-',ct:'2026-11-10 15:31:28'},
+  {id:4058,name:'寻梦仙游记（英语）',eps:4,lang:'',team:'社媒',intro:'-',remark:'音乐分离',ct:'2026-11-10 15:30:15'},
+  {id:4057,name:"After My Daughter Became Alien's Feast 提取",eps:4,lang:'',team:'APP',intro:'-',remark:'-',ct:'2026-11-10 11:46:44'},
+  {id:4056,name:'Decluttering Love草稿',eps:32,lang:'',team:'APP',intro:'-',remark:'-',ct:'2026-11-10 11:43:08'},
+  {id:4055,name:'My Ex Turned Me Into a Sex Robot',eps:0,lang:'',team:'APP',intro:'-',remark:'-',ct:'2026-11-10 11:39:30'}
+];
+const TOTAL_LIST = 3725;
+
+const DETAIL = {
+  1507: {
+    name:'产品测试合集', lang:'中文', team:'APP', eps:6,
+    first: [
+      {id:'88181',name:'踹掉渣男后我被傅总宠上天1',status:'上传成功',erase:1,press:1,dub:1,ct:'2026-06-02 15:14:36'},
+      {id:'88177',name:'踹掉渣男后我被傅总宠上天2',status:'上传成功',erase:1,press:1,dub:1,ct:'2026-06-02 15:14:18'},
+      {id:'88183',name:'踹掉渣男后我被傅总宠上天3',status:'上传成功',erase:1,press:1,dub:1,ct:'2026-06-02 15:14:55'},
+      {id:'88176',name:'踹掉渣男后我被傅总宠上天4',status:'上传成功',erase:1,press:1,dub:1,ct:'2026-06-02 15:14:07'},
+      {id:'88175',name:'踹掉渣男后我被傅总宠上天5',status:'上传成功',erase:1,press:1,dub:1,ct:'2026-06-02 15:14:00'},
+      {id:'128783',name:'踹掉渣男后我被傅总宠上天6',status:'上传成功',erase:1,press:1,dub:1,ct:'2026-07-23 16:47:30'}
+    ],
+    erase: [
+      {id:'54281',name:'踹掉渣男后我被傅总宠上天1',st:'成功',s:'2026-08-07 11:33:50',e:'2026-08-07 11:39:48'},
+      {id:'54282',name:'踹掉渣男后我被傅总宠上天2',st:'成功',s:'2026-08-07 11:13:24',e:'2026-08-07 11:25:06'},
+      {id:'54283',name:'踹掉渣男后我被傅总宠上天3',st:'成功',s:'2026-06-02 15:19:08',e:'2026-06-02 15:26:52'},
+      {id:'54284',name:'踹掉渣男后我被傅总宠上天4',st:'成功',s:'2026-06-02 15:19:08',e:'2026-06-02 15:26:35'},
+      {id:'54285',name:'踹掉渣男后我被傅总宠上天5',st:'成功',s:'2026-06-02 15:19:08',e:'2026-06-02 15:25:37'},
+      {id:'54286',name:'踹掉渣男后我被傅总宠上天6',st:'成功',s:'2026-07-23 16:48:02',e:'2026-07-23 16:56:40'}
+    ],
+    sub: [
+      {id:'79176',name:'踹掉渣男后我被傅总宠上天1',src:'提取（OCR）',lang:'中文',by:'刘同金',auditor:'-',end:'管理端',audit:'未审改',prog:'成功',role:'0%',hasCard:'是',markBy:'-',markEnd:'管理端',mark:'未标记',auditAt:'2026-09-15 17:16:00',auditDone:'-',markAt:'2026-09-15 17:16:00',markDone:'-',ct:'2026-09-15 17:14:52'},
+      {id:'79173',name:'踹掉渣男后我被傅总宠上天2',src:'提取（OCR）',lang:'中文',by:'刘同金',auditor:'邱英配',end:'管理端',audit:'已审改',prog:'成功',role:'0%',hasCard:'是',markBy:'-',markEnd:'管理端',mark:'未标记',auditAt:'2026-09-15 17:21:00',auditDone:'2026-11-09 17:23:06',markAt:'2026-09-15 17:21:00',markDone:'-',ct:'2026-09-15 17:20:21'},
+      {id:'79177',name:'踹掉渣男后我被傅总宠上天3',src:'提取（OCR）',lang:'中文',by:'刘同金',auditor:'-',end:'管理端',audit:'未审改',prog:'成功',role:'0%',hasCard:'是',markBy:'-',markEnd:'管理端',mark:'未标记',auditAt:'2026-09-15 17:26:00',auditDone:'-',markAt:'2026-09-15 17:26:00',markDone:'-',ct:'2026-09-15 17:25:31'},
+      {id:'79174',name:'踹掉渣男后我被傅总宠上天4',src:'提取（OCR）',lang:'中文',by:'刘同金',auditor:'刘同金',end:'管理端',audit:'已审改',prog:'成功',role:'10%',hasCard:'是',markBy:'刘同金',markEnd:'管理端',mark:'已标记',auditAt:'2026-09-15 17:23:00',auditDone:'2026-09-16 10:02:11',markAt:'2026-09-16 10:05:00',markDone:'2026-09-16 10:21:30',ct:'2026-09-15 17:22:40'},
+      {id:'79175',name:'踹掉渣男后我被傅总宠上天5',src:'提取（OCR）',lang:'中文',by:'刘同金',auditor:'-',end:'管理端',audit:'未审改',prog:'成功',role:'0%',hasCard:'是',markBy:'-',markEnd:'管理端',mark:'未标记',auditAt:'2026-09-15 17:24:00',auditDone:'-',markAt:'2026-09-15 17:24:00',markDone:'-',ct:'2026-09-15 17:23:19'},
+      {id:'115128',name:'踹掉渣男后我被傅总宠上天6',src:'提取（OCR）',lang:'中文',by:'刘同金',auditor:'刘同金',end:'管理端',audit:'已审改',prog:'成功',role:'10%',hasCard:'否',markBy:'-',markEnd:'管理端',mark:'未标记',auditAt:'2026-07-23 16:50:00',auditDone:'2026-07-23 17:12:44',markAt:'2026-07-23 16:50:00',markDone:'-',ct:'2026-07-23 16:49:02'}
+    ],
+    translate: [
+      {id:'379000',lines:'-',name:'踹掉渣男后我被傅总宠上天1',card:'是',api:'XiaoYing',src:'翻译',prog:'处理异常',by:'刘同金',ct:'2026-08-25 19:34:44'},
+      {id:'379001',lines:'58',name:'踹掉渣男后我被傅总宠上天2',card:'是',api:'XiaoYing',src:'翻译',prog:'成功',by:'刘同金',ct:'2026-06-15 10:27:11'},
+      {id:'379002',lines:'44',name:'踹掉渣男后我被傅总宠上天3',card:'是',api:'XiaoYing',src:'翻译',prog:'成功',by:'刘同金',ct:'2026-09-15 15:50:22'},
+      {id:'379003',lines:'28',name:'踹掉渣男后我被傅总宠上天4',card:'是',api:'XiaoYing',src:'翻译',prog:'成功',by:'刘同金',ct:'2026-06-02 16:00:07'},
+      {id:'379004',lines:'30',name:'踹掉渣男后我被傅总宠上天5',card:'否',api:'XiaoYing',src:'翻译',prog:'成功',by:'刘同金',ct:'2026-06-02 16:00:07'},
+      {id:'678316',lines:'15',name:'踹掉渣男后我被傅总宠上天6',card:'否',api:'XiaoYing',src:'翻译',prog:'成功',by:'刘同金',ct:'2026-07-23 17:15:52'}
+    ],
+    compress: [
+      {lang:'西班牙语',ing:0,ok:1,fail:0,last:'2026-06-10 10:28:20'},
+      {lang:'韩语',ing:0,ok:5,fail:0,last:'2026-06-09 14:49:16'},
+      {lang:'日语',ing:0,ok:5,fail:0,last:'2026-06-04 17:21:11'},
+      {lang:'英语',ing:0,ok:6,fail:0,last:'2026-08-26 10:47:53'}
+    ],
+    dub: [
+      {lang:'英语',tpl:'模板一',ing:0,ok:6,fail:0,last:'2026-08-26 11:01:58'},
+      {lang:'日语',tpl:'模板一',ing:0,ok:5,fail:0,last:'2026-08-06 15:51:01'},
+      {lang:'英语',tpl:'模板三',ing:0,ok:5,fail:0,last:'2026-07-21 11:03:54'},
+      {lang:'英语',tpl:'模板二',ing:0,ok:5,fail:0,last:'2026-07-03 10:48:15'},
+      {lang:'西班牙语',tpl:'模板一',ing:0,ok:5,fail:0,last:'2026-07-21 13:14:22'},
+      {lang:'韩语',tpl:'模板二',ing:0,ok:5,fail:0,last:'2026-06-11 16:29:43'}
+    ],
+    music: [
+      {task:'字幕压制-20260806151021',lang:'日语',ing:0,ok:5,ct:'2026-08-06 15:10:21'},
+      {task:'源片-20260723200142',lang:'中文',ing:0,ok:6,ct:'2026-07-23 20:01:42'},
+      {task:'源片-20260723165157',lang:'中文',ing:0,ok:1,ct:'2026-07-23 16:51:57'},
+      {task:'源片擦除-20260723153426',lang:'中文',ing:0,ok:5,ct:'2026-07-23 15:34:26'},
+      {task:'源片-20260721152556',lang:'中文',ing:0,ok:5,ct:'2026-07-21 15:25:56'},
+      {task:'源片-20260626101925',lang:'中文',ing:0,ok:1,ct:'2026-06-26 10:19:25'},
+      {task:'源片擦除-20260610114549',lang:'中文',ing:0,ok:5,ct:'2026-06-10 11:45:49'},
+      {task:'源片-20260610114402',lang:'中文',ing:0,ok:5,ct:'2026-06-10 11:44:02'}
+    ],
+    long: [
+      {lang:'英语',tpl:'模板三',type:'AI配音视频',out:'视频',prog:'成功',ct:'2026-08-07 11:37:45'},
+      {lang:'中文',tpl:'-',type:'音频分离',out:'视频',prog:'成功',ct:'2026-07-23 20:14:15'},
+      {lang:'英语',tpl:'模板一',type:'AI配音视频',out:'视频',prog:'成功',ct:'2026-07-23 16:01:32'},
+      {lang:'中文',tpl:'-',type:'音频分离',out:'视频',prog:'成功',ct:'2026-07-21 15:27:44'},
+      {lang:'英语',tpl:'模板二',type:'AI配音音频',out:'音频',prog:'成功',ct:'2026-07-21 14:49:09'},
+      {lang:'英语',tpl:'模板一',type:'AI配音音频',out:'音频',prog:'成功',ct:'2026-07-23 20:10:47'},
+      {lang:'中文',tpl:'-',type:'音频分离',out:'视频',prog:'成功',ct:'2026-06-25 20:42:16'},
+      {lang:'中文',tpl:'-',type:'音频分离',out:'视频',prog:'成功',ct:'2026-06-25 20:42:10'},
+      {lang:'韩语',tpl:'模板二',type:'AI配音视频',out:'视频',prog:'成功',ct:'2026-06-25 20:41:55'},
+      {lang:'韩语',tpl:'-',type:'字幕压制',out:'视频',prog:'成功',ct:'2026-11-02 14:19:45'}
+    ]
+  }
+};
+
+/* =========================================================
+   全局状态
+   ========================================================= */
+const state = {
+  route: {page:'list'},
+  openTabs: [{key:'home',label:'首页（新）',hash:'#/aigc/index'},{key:'list',label:'合集管理',hash:'#/aigc/index'}],
+  activeTab: 'list',
+  list: {fName:'', fRemark:'', team:'', page:1},
+  detail: {id:1507, step:'first', sub:'sub', chip:'英语', sel:new Set(), st:'全部'},
+  uploads: {ing:[], done:[]},
+  retries: 0
+};
+
+function fmtLang(v){ return v || '-'; }
+function tag(text, type){
+  const map={1:'t-green',0:'',2:'t-orange',3:'t-red'};
+  return `<span class="tag-s ${type}">${text}</span>`;
+}
+
+/* =========================================================
+   侧边栏
+   ========================================================= */
+const ICON = {
+  home:'<path d="M2.2 7.1L8 2l5.8 5.1V14H2.2zM6 14v-4h4v4"/>',
+  chart:'<path d="M3 13.4V8.6M6.6 13.4V4.6M10.2 13.4V9.6M13.8 13.4V2.6"/>',
+  bi:'<path d="M2.6 2.4h4.2v11.2H2.6zM9.2 2.4h4.2v6.8H9.2zM9.2 11.2h4.2v2.4H9.2z"/>',
+  doc:'<path d="M4 1.8h5l3.2 3.2v9.2H4zM9 1.8v3.4h3.2M5.8 8h4.4M5.8 10.8h4.4"/>',
+  book:'<path d="M8 3.2C6 1.9 3.9 1.7 2.2 2.1v10.2c1.7-.4 3.8-.2 5.8 1.1 2-1.3 4.1-1.5 5.8-1.1V2.1C12.1 1.7 10 1.9 8 3.2zM8 3.2v10.2"/>',
+  chat:'<path d="M2.4 2.6h11.2v7.6H6.4l-4 3.4z"/>',
+  users:'<path d="M6.1 7.4a2.4 2.4 0 100-4.8 2.4 2.4 0 000 4.8zM1.6 14c0-2.3 2-3.8 4.5-3.8s4.5 1.5 4.5 3.8M11.2 3.1a2 2 0 010 3.9M12.4 10.5c1.3.4 2.1 1.6 2.1 3.5"/>',
+  video:'<path d="M2.2 3.6h8.2v8.8H2.2zM10.4 7.1l3.4-2.2v6.2l-3.4-2.2z"/>',
+  grid:'<path d="M2.4 2.4h4.4v4.4H2.4zM9.2 2.4h4.4v4.4H9.2zM2.4 9.2h4.4v4.4H2.4zM9.2 9.2h4.4v4.4H9.2z"/>',
+  gear:'<path d="M8 5.9a2.1 2.1 0 100 4.2 2.1 2.1 0 000-4.2zM8 1.8l1.1.9 1.4-.3.6 1.3 1.4.6-.2 1.5.9 1.2-.9 1.2.2 1.5-1.4.6-.6 1.3-1.4-.3-1.1.9-1.1-.9-1.4.3-.6-1.3-1.4-.6.2-1.5-.9-1.2.9-1.2-.2-1.5 1.4-.6.6-1.3 1.4.3z"/>',
+  cube:'<path d="M8 1.9l5.4 2.9v6.4L8 14.1 2.6 11.2V4.8zM2.6 4.8L8 7.7l5.4-2.9M8 7.7v6.4"/>',
+  bulb:'<path d="M8 1.9a4 4 0 00-2.3 7.2v1.9h4.6V9.1A4 4 0 008 1.9zM6.2 12.8h3.6"/>'
+};
+const MENU = [
+  {t:'AI翻译系统',i:'chat',arr:1,open:true,children:['合集管理','AI配音','字幕翻译','译员看板','系统管理']}
+];
+function renderMenu(){
+  const el = document.getElementById('menu');
+  el.innerHTML = MENU.map((m,idx)=>{
+    const svg = `<svg class="ico" viewBox="0 0 16 16" fill="none" stroke="#bfcbd9" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round">${ICON[m.i]||ICON.grid}</svg>`;
+    if(m.children){
+      return `<div class="mi ${m.open?'open':''}" data-menu="${idx}">
+        ${svg}<span class="text">${m.t}</span><span class="arrow">▶</span>
+      </div>
+      <div class="sub ${m.open?'show':''}" data-sub="${idx}">
+        ${m.children.map(c=>`<div class="si ${c==='合集管理'?'active':''}" data-leaf="${c}">${c}</div>`).join('')}
+      </div>`;
+    }
+    return `<div class="mi" data-leaf="${m.t}">${svg}<span class="text">${m.t}</span>${m.arr?'<span class="arrow">▶</span>':''}</div>`;
+  }).join('');
+}
+renderMenu();
+
+document.getElementById('menu').addEventListener('click', e=>{
+  const si = e.target.closest('.si');
+  if(si){ toast(`「${si.dataset.leaf}」模块演示版本未实现`, 'info'); return; }
+  const mi = e.target.closest('.mi');
+  if(!mi) return;
+  const idx = +mi.dataset.menu;
+  if(!isNaN(idx) && MENU[idx].children){
+    mi.classList.toggle('open');
+    mi.nextElementSibling.classList.toggle('show');
+    return;
+  }
+  const leaf = mi.dataset.leaf;
+  if(leaf && leaf!=='合集管理') toast(`「${leaf}」模块演示版本未实现`, 'info');
+});
+
+/* =========================================================
+   标签栏
+   ========================================================= */
+function renderTags(){
+  const bar = document.getElementById('tagsbar');
+  bar.innerHTML = state.openTabs.map(t=>`
+    <div class="tag ${state.activeTab===t.key?'active':''}" data-tabkey="${t.key}">
+      <span class="dot"></span>${t.label}
+      <span class="x" data-close="${t.key}">✕</span>
+    </div>`).join('');
+}
+document.getElementById('tagsbar').addEventListener('click', e=>{
+  const c = e.target.closest('[data-close]');
+  if(c){
+    const key = c.dataset.close;
+    state.openTabs = state.openTabs.filter(t=>t.key!==key);
+    if(key==='extract'){ state.extract=null; clearInterval(exTimer); }
+    if(state.activeTab===key){
+      state.activeTab = key==='extract' ? 'detail' : 'list';
+      go(state.activeTab);
+    }
+    else renderTags();
+    return;
+  }
+  const t = e.target.closest('[data-tabkey]');
+  if(!t) return;
+  const key = t.dataset.tabkey;
+  if(key==='home'){ toast('「首页（新）」模块演示版本未实现','info'); return; }
+  if(key==='detail' && !DETAIL[state.detail.id]){ return; }
+  if(key==='extract' && !state.extract){ return; }
+  state.activeTab = key; go(key);
+});
+
+/* =========================================================
+   路由
+   ========================================================= */
+function go(page){
+  state.activeTab = page;
+  if(page==='list'){ state.route={page:'list'}; renderList(); }
+  else if(page==='extract'){ state.route={page:'extract'}; renderExtract(); }
+  else { state.route={page:'detail'}; clearInterval(exTimer); renderDetail(); }
+  renderTags();
+  const crumb = document.getElementById('crumb');
+  crumb.innerHTML = page==='list'
+    ? '<span>AI翻译系统</span><span class="sep">/</span><span class="cur">合集管理</span>'
+    : page==='extract'
+      ? '<span>AI翻译系统</span><span class="sep">/</span><span class="cur">提取字幕</span>'
+      : '<span>AI翻译系统</span><span class="sep">/</span><span class="cur">合集详情</span>';
+}
+
+/* =========================================================
+   列表页
+   ========================================================= */
+function filteredList(){
+  const {fName,fRemark,team} = state.list;
+  return COLLECTIONS.filter(c=>
+    (!fName || c.name.includes(fName)) &&
+    (!fRemark || c.remark.includes(fRemark)) &&
+    (!team || c.team===team)
+  );
+}
+function renderList(){
+  const rows = filteredList();
+  const c = document.getElementById('content');
+  c.innerHTML = `
+  <div class="card list-card">
+    <div class="filter-row">
+      <div class="f-input">
+        <input id="fName" placeholder="合集名称" value="${state.list.fName}">
+        <svg class="sico" width="12" height="12" viewBox="0 0 16 16" fill="#c0c4cc"><path d="M15.5 14.1l-4.2-4.2a6 6 0 10-1.4 1.4l4.2 4.2a1 1 0 001.4-1.4zM2 6.5a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z"/></svg>
+      </div>
+      <div class="f-input"><input id="fRemark" placeholder="备注" value="${state.list.fRemark}"></div>
+      <div class="f-select ${state.list.team?'has':''}">
+        <span>${state.list.team||'团队'}</span><span class="caret">▼</span>
+        <select id="fTeam">
+          <option value="">全部团队</option>
+          <option value="社媒" ${state.list.team==='社媒'?'selected':''}>社媒</option>
+          <option value="APP" ${state.list.team==='APP'?'selected':''}>APP</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" data-act="add-collection"><i>＋</i>新增合集</button>
+      <button class="btn btn-primary" data-act="search-list">查询</button>
+      <button class="btn-icon" data-act="reset-list" title="重置">⟳</button>
+    </div>
+
+    <table class="tbl">
+      <colgroup>
+        <col style="width:80px"><col><col style="width:70px"><col style="width:90px">
+        <col style="width:76px"><col style="width:76px"><col style="width:110px"><col style="width:150px"><col style="width:170px">
+      </colgroup>
+      <thead><tr>
+        <th>合集ID</th><th>合集名称</th><th>剧集数</th><th>合集源语言</th><th>团队</th>
+        <th>简介</th><th>备注</th><th>创建时间</th><th>操作</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(r=>`
+          <tr>
+            <td>${r.id}</td>
+            <td class="l"><span class="name-cell" data-act="open-detail" data-id="${r.id}">${r.name}</span></td>
+            <td>${r.eps}</td>
+            <td>${fmtLang(r.lang)}</td>
+            <td>${r.team}</td>
+            <td>${r.intro}</td>
+            <td>${r.remark}</td>
+            <td>${r.ct}</td>
+            <td>
+              <div class="ops">
+                <span class="link" data-act="edit-collection" data-id="${r.id}">编辑</span>
+                <span class="link-sep">|</span>
+                <span class="link" data-act="del-collection" data-id="${r.id}">删除</span>
+                <span class="link-sep">|</span>
+                <span class="link" data-act="namecard" data-id="${r.id}">姓名卡</span>
+              </div>
+            </td>
+          </tr>`).join('') || `<tr><td colspan="9" style="padding:60px 0;color:#c0c4cc">暂无数据</td></tr>`}
+      </tbody>
+    </table>
+
+    <div class="tbl-footer">
+      <span>共 ${TOTAL_LIST} 条</span>
+      <div class="pager">
+        <span class="pg">‹</span>
+        <span class="pg on">1</span><span class="pg">2</span><span class="pg">3</span><span class="pg">4</span><span class="pg">5</span><span class="pg">6</span>
+        <span class="pg ellipsis">…</span><span class="pg">75</span>
+        <span class="pg">›</span>
+        <div class="pgsize">50条/页 <span style="color:#c0c4cc;font-size:9px">▼</span></div>
+      </div>
+    </div>
+  </div>`;
+
+  const bind = (id, key)=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('input', e=>{ state.list[key]=e.target.value.trim(); });
+    if(el) el.addEventListener('change', e=>{ state.list[key]=e.target.value; renderList(); });
+  };
+  bind('fName','fName'); bind('fRemark','fRemark');
+  const team = document.getElementById('fTeam');
+  if(team) team.addEventListener('change', e=>{ state.list.team=e.target.value; renderList(); });
+  const fName = document.getElementById('fName');
+  if(fName) fName.addEventListener('keydown', e=>{ if(e.key==='Enter') renderList(); });
+}
+
+/* =========================================================
+   详情页
+   ========================================================= */
+const STEPS = [
+  {k:'first', t:'源片列表'},{k:'erase', t:'源片擦除'},{k:'sub', t:'源字幕库'},
+  {k:'translate', t:'翻译字幕'},{k:'compress', t:'字幕压制'},{k:'term', t:'术语提取'},
+  {k:'dub', t:'短剧配音'},{k:'music', t:'音乐分离'},{k:'long', t:'长视频'}
+];
+function renderDetail(){
+  const d = DETAIL[state.detail.id];
+  const c = document.getElementById('content');
+  c.innerHTML = `
+  <div class="card detail-card">
+    <div class="detail-head">
+      <div class="cur">当前合集：<b>${d.name}</b></div>
+      <div class="r"><button class="btn btn-plain" data-act="upload-log">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="#606266"><path d="M8 1.5l3.4 3.4-1 1L8.9 4.4V10H7.1V4.4L5.6 5.9l-1-1zM2 11.5h12V14H2z"/></svg>
+        上传记录</button></div>
+    </div>
+    <div class="steps">
+      ${STEPS.map(s=>`<div class="step ${state.detail.step===s.k?'on':''}" data-act="step" data-id="${s.k}">${s.t}</div>`).join('')}
+    </div>
+    <div id="step-body"></div>
+  </div>`;
+  renderStep();
+}
+
+function statusTabs(items, active){
+  return `<div class="status-tabs">${items.map(it=>
+    `<span class="st ${it.label===active?'on':''}" data-act="status" data-id="${it.label}">${it.label}（${it.count}）</span>`
+  ).join('')}</div>`;
+}
+function selects(list){
+  return list.map(s=>`<div class="f-select"><span>${s}</span><span class="caret">▼</span>
+    <select data-act="select"></select></div>`).join('');
+}
+
+function renderStep(){
+  const body = document.getElementById('step-body');
+  const d = DETAIL[state.detail.id];
+  const k = state.detail.step;
+
+  if(k==='first'){
+    const total = d.first.length;
+    body.innerHTML = `
+      <div class="actions">
+        <button class="btn btn-primary" data-act="upload-video">上传视频</button>
+        <button class="btn btn-primary" data-act="select-lib">选择内容库合集</button>
+        <button class="btn btn-primary" data-act="extract-sub">提取字幕</button>
+        ${(()=>{const ing=d.sub.filter(x=>x.prog==='处理中').length;
+          return ing?`<span class="pip"><i></i>字幕提取中（${ing}）</span>`:'';})()}
+        <button class="btn btn-primary" data-act="erase-sub">字幕擦除</button>
+        <button class="btn btn-primary" data-act="download">下载视频</button>
+        <button class="btn btn-primary" data-act="music-sub">音乐分离</button>
+      </div>
+      <div class="filter-row">
+        ${statusTabs([{label:'上传成功',count:total},{label:'上传中',count:0},{label:'上传失败',count:0},{label:'转码中',count:0},{label:'转码失败',count:0}],'上传成功')}
+        <div class="right-filters">
+          ${selects(['是否字幕擦除','是否字幕压制','是否配音'])}
+          <div class="f-input"><input placeholder="剧集名称"></div>
+          <button class="btn btn-primary" data-act="do-search">查询</button>
+          <button class="btn-icon" data-act="reset-filter">⟳</button>
+        </div>
+      </div>
+      <table class="tbl">
+        <colgroup>
+          <col style="width:44px"><col style="width:90px"><col><col style="width:100px">
+          <col style="width:118px"><col style="width:118px"><col style="width:92px"><col style="width:158px"><col style="width:150px">
+        </colgroup>
+        <thead><tr>
+          <th><input type="checkbox" class="ck" data-act="ck-all"></th>
+          <th>源片ID</th><th>剧集名称</th><th>状态</th><th>是否字幕擦除</th><th>是否字幕压制</th>
+          <th>是否配音</th><th>创建时间</th><th>操作</th>
+        </tr></thead>
+        <tbody>
+          ${d.first.map(r=>`<tr>
+            <td><input type="checkbox" class="ck" data-act="ck-row" data-id="${r.id}" ${state.detail.sel.has(r.id)?'checked':''}></td>
+            <td>${r.id}</td>
+            <td class="l">${r.name}</td>
+            <td>${tag(r.status,'t-green')}</td>
+            <td>${r.erase?tag('已擦除','t-green'):tag('未擦除','t-gray')}</td>
+            <td>${r.press?tag('已压制','t-green'):tag('未压制','t-gray')}</td>
+            <td>${r.dub?tag('已配音','t-green'):tag('未配音','t-gray')}</td>
+            <td>${r.ct}</td>
+            <td><div class="ops">
+              <span class="link" data-act="view-video" data-id="${r.id}">查看</span>
+              <span class="link" data-act="rename-ep" data-id="${r.id}">修改</span>
+              <span class="link" data-act="del-ep" data-id="${r.id}">删除</span>
+            </div></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="tbl-footer"><span>已选择 ${state.detail.sel.size} 项</span>
+        <div class="pager"><span style="color:#606266">共 ${total} 条</span></div>
+      </div>`;
+  }
+
+  else if(k==='erase'){
+    body.innerHTML = `
+      <div class="actions">
+        <button class="btn btn-plain" data-act="upload-log">上传记录</button>
+        <button class="btn btn-plain" data-act="download">下载视频</button>
+      </div>
+      <div class="filter-row">
+        ${statusTabs([{label:'成功',count:d.erase.length},{label:'处理中',count:0},{label:'处理异常',count:0}],'成功')}
+        <div class="right-filters"><button class="btn btn-primary" data-act="do-search">查询</button></div>
+      </div>
+      <table class="tbl">
+        <colgroup><col style="width:110px"><col><col style="width:110px"><col style="width:180px"><col style="width:180px"></colgroup>
+        <thead><tr><th>擦除ID</th><th>剧集名称</th><th>进度</th><th>擦除开始时间</th><th>擦除结束时间</th></tr></thead>
+        <tbody>${d.erase.map(r=>`<tr>
+          <td>${r.id}</td><td class="l">${r.name}</td><td>${tag(r.st,'t-green')}</td><td>${r.s}</td><td>${r.e}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <div class="tbl-footer"><span>共 ${d.erase.length} 条</span></div>`;
+  }
+
+  else if(k==='sub'){
+    const sub = state.detail.subTab || 'extract';
+    body.innerHTML = `
+      <div class="subtabs">
+        <span class="stab ${sub==='extract'?'on':''}" data-act="subtab" data-id="extract">字幕提取</span>
+        <span class="stab ${sub==='role'?'on':''}" data-act="subtab" data-id="role">角色列表</span>
+      </div>
+      ${sub==='extract' ? `
+      <div class="actions">
+        <button class="btn btn-primary" data-act="simple-tip" data-id="上传源字幕">上传源字幕</button>
+        <button class="btn btn-primary" data-act="simple-tip" data-id="字幕翻译">字幕翻译</button>
+        <button class="btn btn-primary" data-act="download">下载字幕</button>
+        <button class="btn btn-primary" data-act="audit-sub">字幕审改</button>
+        <button class="btn btn-primary" data-act="simple-tip" data-id="分配译员（审改）">分配译员（审改）</button>
+        <button class="btn btn-primary" data-act="simple-tip" data-id="智能识别并标记角色">智能识别并标记角色</button>
+        <button class="btn btn-primary" data-act="simple-tip" data-id="手动标记角色">手动标记角色</button>
+        <button class="btn btn-primary" data-act="simple-tip" data-id="分配译员（标记）">分配译员（标记）</button>
+        <button class="btn btn-primary" data-act="simple-tip" data-id="提交入库">提交入库</button>
+      </div>
+      <div class="filter-row">
+        ${statusTabs([
+          {label:'成功',count:d.sub.filter(x=>x.prog!=='处理中').length},
+          {label:'处理中',count:d.sub.filter(x=>x.prog==='处理中').length},
+          {label:'处理异常',count:0}],'成功')}
+        <div class="right-filters">
+          <div class="f-input"><input placeholder="剧集名称"></div>
+          ${selects(['是否有人名条','审改状态','标记状态'])}
+          <button class="btn btn-primary" data-act="do-search">查询</button>
+          <button class="btn-icon" data-act="reset-filter">⟳</button>
+        </div>
+      </div>
+      <div class="tbl-wrap"><table class="tbl tbl-wide">
+        <colgroup>
+          <col style="width:44px"><col style="width:100px"><col style="width:230px"><col style="width:110px"><col style="width:80px">
+          <col style="width:90px"><col style="width:90px"><col style="width:120px"><col style="width:100px"><col style="width:80px">
+          <col style="width:90px"><col style="width:110px"><col style="width:90px"><col style="width:120px"><col style="width:100px">
+          <col style="width:160px"><col style="width:160px"><col style="width:160px"><col style="width:160px"><col style="width:160px"><col style="width:150px">
+        </colgroup>
+        <thead><tr>
+          <th><input type="checkbox" class="ck"></th>
+          <th>源字幕ID</th><th>剧集名称</th><th>字幕来源</th><th>源语言</th><th>创建人</th><th>审改人</th>
+          <th>任务分配端（审改）</th><th>审改状态</th><th>进度</th><th>角色标记</th><th>是否有人名条</th>
+          <th>标记人</th><th>任务分配端（标记）</th><th>标记状态</th>
+          <th>审改分配时间</th><th>审改完成时间</th><th>标记分配时间</th><th>标记完成时间</th><th>创建时间</th><th>操作</th>
+        </tr></thead>
+        <tbody>${d.sub.map(r=>`<tr>
+          <td><input type="checkbox" class="ck"></td>
+          <td>${r.id}</td><td class="l">${r.name}</td><td>${r.src}</td><td>${r.lang}</td><td>${r.by}</td><td>${r.auditor}</td>
+          <td>${r.end}</td>
+          <td>${r.audit==='已审改'?tag('已审改','t-green'):`<span style="color:#e6a23c">${r.audit}</span>`}</td>
+          <td>${r.prog==='处理中'
+              ? `<span class="p-orange">处理中 ${r.pct||0}%</span>`
+              : tag('成功','t-green')}</td><td>${r.role}</td><td>${r.hasCard}</td>
+          <td>${r.markBy}</td><td>${r.markEnd}</td>
+          <td>${r.mark==='已标记'?tag('已标记','t-green'):`<span style="color:#e6a23c">${r.mark}</span>`}</td>
+          <td>${r.auditAt}</td><td>${r.auditDone}</td><td>${r.markAt}</td><td>${r.markDone}</td><td>${r.ct}</td>
+          <td><div class="ops">
+            <span class="link" data-act="audit-sub" data-id="${r.id}">审改</span>
+            <span class="link" data-act="extract-detail" data-id="${r.id}">提取详情</span>
+          </div></td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+      <div class="tbl-footer"><span>已选择 0 项</span><div class="pager"><span style="color:#606266">共 ${d.sub.length} 条</span></div></div>
+      ` : `
+      <div class="actions">
+        <button class="btn btn-primary" data-act="simple-tip" data-id="新增角色">新增角色</button>
+        <button class="btn btn-primary" data-act="simple-tip" data-id="批量上传人名条">批量上传人名条</button>
+      </div>
+      <table class="tbl">
+        <colgroup><col style="width:44px"><col style="width:110px"><col style="width:200px"><col><col style="width:120px"><col style="width:150px"></colgroup>
+        <thead><tr><th><input type="checkbox" class="ck"></th><th>角色ID</th><th>角色名称</th><th>人名条预览</th><th>出现剧集数</th><th>操作</th></tr></thead>
+        <tbody>
+          ${['傅斯琛','云星','苏曼','陈默'].map((n,i)=>`<tr>
+            <td><input type="checkbox" class="ck"></td><td>R${1001+i}</td><td class="l">${n}</td>
+            <td><span style="display:inline-block;padding:5px 12px;background:#f5f7fa;border:1px dashed #dcdfe6;border-radius:2px;color:#606266">${n}</span></td>
+            <td>${i<3?6:4}</td>
+            <td><div class="ops"><span class="link" data-act="simple-tip" data-id="编辑角色">编辑</span>
+            <span class="link" data-act="simple-tip" data-id="删除角色">删除</span></div></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`}
+    `;
+  }
+
+  else if(k==='translate'){
+    const sub = state.detail.transTab || 'ai';
+    const chips = ['英语','日语','韩语','法语','西班牙语','俄语'];
+    body.innerHTML = `
+      <div class="subtabs">
+        ${[['ai','AI翻译'],['r1','字幕一审'],['r2','字幕二审'],['in','字幕入库']].map(([kk,tt])=>
+          `<span class="stab ${sub===kk?'on':''}" data-act="trans-tab" data-id="${kk}">${tt}</span>`).join('')}
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" data-act="simple-tip" data-id="字幕翻译">字幕翻译</button>
+        <button class="btn btn-primary" data-act="simple-tip" data-id="上传字幕">上传字幕</button>
+        <button class="btn btn-primary" data-act="download">下载字幕</button>
+        <button class="btn btn-primary" data-act="simple-tip" data-id="提交审核">提交审核</button>
+        <button class="btn btn-primary" data-act="simple-tip" data-id="提交入库">提交入库</button>
+      </div>
+      <div class="filter-row">
+        ${selects(['翻译进度','API'])}
+        <div class="f-input"><input placeholder="剧集名称"></div>
+        <button class="btn btn-primary" data-act="do-search">查询</button>
+        <button class="btn-icon" data-act="reset-filter">⟳</button>
+      </div>
+      <div class="chips">
+        ${chips.map(c=>`<span class="chip ${state.detail.chip===c?'on':''}" data-act="chip" data-id="${c}">${c}</span>`).join('')}
+      </div>
+      <table class="tbl">
+        <colgroup><col style="width:44px"><col style="width:110px"><col style="width:90px"><col><col style="width:110px">
+          <col style="width:100px"><col style="width:100px"><col style="width:110px"><col style="width:90px"><col style="width:160px"><col style="width:100px"></colgroup>
+        <thead><tr>
+          <th><input type="checkbox" class="ck"></th><th>翻译字幕ID</th><th>字幕行数</th><th>剧集名称</th><th>是否有人名条</th>
+          <th>API</th><th>字幕来源</th><th>翻译进度</th><th>创建人</th><th>创建时间</th><th>操作</th>
+        </tr></thead>
+        <tbody>${d.translate.map(r=>`<tr>
+          <td><input type="checkbox" class="ck"></td>
+          <td>${r.id}</td><td>${r.lines}</td><td class="l">${r.name}</td><td>${r.card}</td>
+          <td>${r.api}</td><td>${r.src}</td>
+          <td>${r.prog==='成功'?tag('成功','t-green'):`<span style="color:#f56c6c">${r.prog}</span><i class="dot-warn">!</i>`}</td>
+          <td>${r.by}</td><td>${r.ct}</td>
+          <td><span class="link" data-act="trans-detail" data-id="${r.id}">翻译详情</span></td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <div class="tbl-footer"><span>共 ${d.translate.length} 条</span></div>`;
+  }
+
+  else if(k==='compress'){
+    body.innerHTML = `
+      <div class="filter-row">
+        ${selects(['压制语言'])}
+        <button class="btn btn-primary" data-act="do-search">查询</button>
+        <button class="btn-icon" data-act="reset-filter">⟳</button>
+      </div>
+      <table class="tbl">
+        <colgroup><col style="width:140px"><col><col style="width:190px"><col style="width:240px"></colgroup>
+        <thead><tr><th>翻译语言</th><th>压制进度</th><th>最近压制时间</th><th>操作</th></tr></thead>
+        <tbody>${d.compress.map(r=>`<tr>
+          <td>${r.lang}</td>
+          <td><span class="p-orange">处理中：${r.ing}</span> &nbsp;
+              <span class="p-green">成功：${r.ok}</span> &nbsp;
+              <span class="p-red">失败：${r.fail}</span></td>
+          <td>${r.last}</td>
+          <td><div class="ops">
+            <span class="link" data-act="process-detail" data-id="字幕压制|${r.lang}">详情</span>
+            <span class="link" data-act="download">下载视频</span>
+            <span class="link" data-act="music-sub">音乐分离</span>
+          </div></td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <div class="tbl-footer"><span>共 ${d.compress.length} 条</span></div>`;
+  }
+
+  else if(k==='term'){
+    const sub = state.detail.termTab || 'ai';
+    body.innerHTML = `
+      <div class="subtabs">
+        <span class="stab ${sub==='ai'?'on':''}" data-act="term-tab" data-id="ai">AI术语提取</span>
+        <span class="stab ${sub==='task'?'on':''}" data-act="term-tab" data-id="task">任务列表</span>
+      </div>
+      ${sub==='ai' ? `
+      <div class="term-wrap">
+        <div class="term-left">
+          <button class="btn btn-primary" data-act="simple-tip" data-id="导入合集源字幕">＋ 导入合集源字幕</button>
+          <button class="btn btn-primary" data-act="simple-tip" data-id="上传本地字幕">↑ 上传本地字幕</button>
+          ${d.sub.map((r,i)=>`<div class="term-file"><input type="checkbox" class="ck" ${i===0?'checked':''}>
+            <span class="fl" title="${r.name}">${r.name}</span></div>`).join('')}
+        </div>
+        <div class="term-right">
+          <div class="lbl">翻译目标语言</div>
+          <div class="sel" data-act="simple-tip" data-id="选择翻译目标语言">请选择</div>
+          <div style="margin-top:22px" class="hint">
+            选择左侧源字幕文件与目标语言后，点击右下角「生成术语表」<br>
+            系统将基于源字幕与译文抽取人名、称谓、专有名词，生成术语对照表
+          </div>
+          <div class="foot"><button class="btn btn-primary" data-act="gen-term">生成术语表</button></div>
+        </div>
+      </div>` : `
+      <table class="tbl">
+        <colgroup><col style="width:140px"><col><col style="width:120px"><col style="width:170px"><col style="width:110px"></colgroup>
+        <thead><tr><th>任务ID</th><th>翻译目标语言</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+        <tbody>
+          ${[['T20481','英语','成功','2026-08-26 11:12:03'],['T20470','日语','成功','2026-08-06 15:22:41'],['T20433','韩语','处理异常','2026-07-21 13:30:09']].map(r=>`<tr>
+            <td>${r[0]}</td><td class="l">${r[1]}</td>
+            <td>${r[2]==='成功'?tag('成功','t-green'):`<span style="color:#f56c6c">${r[2]}</span>`}</td>
+            <td>${r[3]}</td>
+            <td><span class="link" data-act="simple-tip" data-id="查看术语表">查看术语表</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`}
+    `;
+  }
+
+  else if(k==='dub'){
+    const sub = state.detail.dubTab || 'video';
+    body.innerHTML = `
+      <div class="subtabs">
+        <span class="stab ${sub==='video'?'on':''}" data-act="dub-tab" data-id="video">配音视频</span>
+        <span class="stab ${sub==='audio'?'on':''}" data-act="dub-tab" data-id="audio">配音音频</span>
+      </div>
+      <div class="filter-row">
+        ${selects(['配音语言'])}
+        <button class="btn btn-primary" data-act="do-search">查询</button>
+        <button class="btn-icon" data-act="reset-filter">⟳</button>
+      </div>
+      <table class="tbl">
+        <colgroup><col style="width:120px"><col style="width:120px"><col><col style="width:190px"><col style="width:190px"></colgroup>
+        <thead><tr><th>配音语言</th><th>配音模板</th><th>配音进度</th><th>最近配音时间</th><th>操作</th></tr></thead>
+        <tbody>${d.dub.map(r=>`<tr>
+          <td>${r.lang}</td><td>${r.tpl}</td>
+          <td><span class="p-orange">处理中：${r.ing}</span> &nbsp;
+              <span class="p-green">成功：${r.ok}</span> &nbsp;
+              <span class="p-red">失败：${r.fail}</span></td>
+          <td>${r.last}</td>
+          <td><div class="ops">
+            <span class="link" data-act="process-detail" data-id="短剧配音|${r.lang}">详情</span>
+            <span class="link" data-act="download">字幕下载</span>
+          </div></td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <div class="tbl-footer"><span>共 ${d.dub.length} 条</span></div>`;
+  }
+
+  else if(k==='music'){
+    body.innerHTML = `
+      <div class="actions"><button class="btn btn-plain" data-act="upload-log">上传记录</button></div>
+      <table class="tbl">
+        <colgroup><col><col style="width:110px"><col style="width:240px"><col style="width:180px"></colgroup>
+        <thead><tr><th>分离任务</th><th>语言</th><th>分离进度</th><th>创建时间</th></tr></thead>
+        <tbody>${d.music.map(r=>`<tr>
+          <td class="l">${r.task}</td><td>${r.lang}</td>
+          <td><span class="p-orange">处理中：${r.ing}</span> &nbsp;
+              <span class="p-green">成功：${r.ok}</span> &nbsp;
+              <span class="p-red">处理异常：0</span></td>
+          <td>${r.ct}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <div class="tbl-footer"><span>共 ${d.music.length} 条</span></div>`;
+  }
+
+  else if(k==='long'){
+    body.innerHTML = `
+      <div class="filter-row">
+        ${selects(['配音语言'])}
+        <button class="btn btn-primary" data-act="do-search">查询</button>
+        <button class="btn-icon" data-act="reset-filter">⟳</button>
+      </div>
+      <table class="tbl">
+        <colgroup><col style="width:100px"><col style="width:100px"><col style="width:150px"><col style="width:110px">
+          <col style="width:90px"><col style="width:180px"><col style="width:180px"></colgroup>
+        <thead><tr><th>语言</th><th>模板</th><th>类型</th><th>输出类型</th><th>进度</th><th>合成时间</th><th>操作</th></tr></thead>
+        <tbody>${d.long.map(r=>`<tr>
+          <td>${r.lang}</td><td>${r.tpl}</td><td>${r.type}</td><td>${r.out}</td>
+          <td>${tag(r.prog,'t-green')}</td><td>${r.ct}</td>
+          <td><div class="ops">
+            <span class="link" data-act="preview" data-id="${r.out}">预览</span>
+            <span class="link" data-act="download">下载${r.out==='音频'?'音频':'视频'}</span>
+          </div></td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <div class="tbl-footer"><span>共 ${d.long.length} 条</span>
+        <div class="pager"><span class="pg">‹</span><span class="pg on">1</span><span class="pg">›</span>
+          <div class="pgsize">10条/页 <span style="color:#c0c4cc;font-size:9px">▼</span></div>
+        </div>
+      </div>`;
+  }
+}
+
+/* =========================================================
+   弹窗 / toast / 抽屉
+   ========================================================= */
+const overlay = document.getElementById('overlay');
+
+function toast(msg, type){
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type==='err'?' err':type==='info'?' info':'');
+  el.innerHTML = `<span>${type==='err'?'✕':type==='info'?'ⓘ':'✓'}</span><span>${msg}</span>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='.25s'; setTimeout(()=>el.remove(),260); }, 2200);
+}
+
+function dialog({title, body, footer, width, onMount}){
+  overlay.innerHTML = `
+    <div class="mask">
+      <div class="dlg" style="width:${width||520}px">
+        <div class="dlg-h">${title}<span class="x" data-x>✕</span></div>
+        <div class="dlg-b">${body}</div>
+        <div class="dlg-f">${footer}</div>
+      </div>
+    </div>`;
+  const mask = overlay.querySelector('.mask');
+  const close = ()=> overlay.innerHTML='';
+  mask.addEventListener('click', e=>{ if(e.target===mask) close(); });
+  overlay.querySelector('[data-x]').onclick = close;
+  overlay.querySelectorAll('[data-close-dlg]').forEach(b=>b.onclick=close);
+  if(onMount) onMount(close);
+  return close;
+}
+
+function confirmDlg(title, text, onOk){
+  dialog({
+    title,
+    body:`<div style="padding:6px 0 10px;font-size:13px;color:#606266">${text}</div>`,
+    width:420,
+    footer:`<button class="btn" data-close-dlg>取 消</button>
+            <button class="btn btn-primary" data-ok>确 定</button>`,
+    onMount(close){
+      overlay.querySelector('[data-ok]').onclick = ()=>{ close(); onOk&&onOk(); };
+    }
+  });
+}
+
+function nowStr(){
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
+/* ---------- 提取字幕：配置弹窗 → 任务入队 → 进度流转 ---------- */
+function extractSubDlg(){
+  const d = DETAIL[state.detail.id];
+  const ids = [...state.detail.sel];
+  const rows = d.first.filter(r=>ids.includes(r.id));
+  if(!rows.length){ toast('请先勾选需要提取字幕的源片','err'); return; }
+  dialog({
+    title:'提取字幕',
+    width:460,
+    body:`
+      <div class="form-item"><div class="lab"><span class="req">*</span>提取字幕方式</div>
+        <div class="ctl">
+          <div class="sel-fake" id="exWay"><span data-way>提取（OCR）</span><span class="caret">▼</span>
+            <div class="dd">
+              <div class="on" data-pick="提取（OCR）">提取（OCR）</div>
+              <div data-pick="ASR音频转写">ASR音频转写</div>
+            </div>
+          </div>
+        </div></div>
+      <div class="form-item"><div class="lab"><span class="req">*</span>提取API</div>
+        <div class="ctl">
+          <div class="radio-group" id="exApi">
+            <label class="rd on" data-pick="阿里"><i></i><span>阿里</span></label>
+            <label class="rd" data-pick="鬼手"><i></i><span>鬼手</span></label>
+          </div>
+        </div></div>
+      <div class="form-item"><div class="lab"><span class="req">*</span>提取字幕语言</div>
+        <div class="ctl"><input class="inp" value="${d.lang}（自动识别）" disabled></div></div>`,
+    footer:`<button class="btn btn-primary" style="width:100%;justify-content:center" data-ok>字幕提取</button>`,
+    onMount(close){
+      const wayEl = document.getElementById('exWay');
+      const apiEl = document.getElementById('exApi');
+      const apiRds = [...apiEl.querySelectorAll('.rd')];
+      const curApi = ()=>{ const on = apiEl.querySelector('.rd.on'); return on ? on.dataset.pick : '阿里'; };
+      const setApi = pick=> apiRds.forEach(r=>r.classList.toggle('on', r.dataset.pick===pick));
+
+      // 方式 → API 联动：ASR音频转写 仅支持 鬼手
+      const syncApiLimit = ()=>{
+        const isAsr = wayEl.querySelector('[data-way]').textContent.trim() === 'ASR音频转写';
+        const aliRd = apiRds.find(r=>r.dataset.pick==='阿里');
+        aliRd.classList.toggle('off', isAsr);
+        aliRd.querySelector('span').innerHTML = isAsr ? '阿里<em style="margin-left:4px">ASR 不支持</em>' : '阿里';
+        if(isAsr && curApi() === '阿里'){
+          setApi('鬼手');
+          toast('ASR音频转写仅支持「鬼手」API，已自动切换');
+        }
+      };
+
+      wayEl.onclick = e=>{
+        if(e.target.dataset.pick){
+          wayEl.querySelector('[data-way]').textContent = e.target.dataset.pick;
+          wayEl.querySelectorAll('.dd div').forEach(x=>x.classList.toggle('on', x.dataset.pick===e.target.dataset.pick));
+          wayEl.classList.remove('open');
+          syncApiLimit();
+          return;
+        }
+        wayEl.classList.toggle('open');
+      };
+
+      apiEl.onclick = e=>{
+        const rd = e.target.closest('.rd');
+        if(!rd) return;
+        if(rd.classList.contains('off')){
+          toast('ASR音频转写仅支持「鬼手」API','err');
+          return;
+        }
+        setApi(rd.dataset.pick);
+      };
+
+      overlay.querySelector('[data-ok]').onclick = ()=>{
+        const picked = wayEl.querySelector('[data-way]').textContent.trim();
+        const api = curApi();
+        close();
+        if(picked === 'ASR音频转写'){
+          // 音频转写不需要框选区域，直接提交任务
+          state.detail.step = 'sub';
+          go('detail');
+          submitExtract(rows, picked, api, 0);
+          return;
+        }
+        openExtractPage(rows, picked, api);
+      };
+    }
+  });
+}
+
+/* ---------- 提取字幕：框选提取区域页面 ---------- */
+const fmtT = t=>{
+  const m=String(Math.floor(t/60)).padStart(2,'0');
+  const sec=String(Math.floor(t%60)).padStart(2,'0');
+  return m+':'+sec;
+};
+let exTimer = null;
+
+function openExtractPage(rows, way, api){
+  state.extract = {
+    way,
+    api,
+    ids: rows.map(r=>r.id),
+    idx: 0,
+    box: {x:0, y:75, w:100, h:25},
+    playing: true, t: 18, dur: 143, speed: 1, muted: false, picking: false
+  };
+  if(!state.openTabs.find(t=>t.key==='extract'))
+    state.openTabs.push({key:'extract', label:'提取字幕', hash:'#'});
+  go('extract');
+}
+
+function renderExtract(){
+  const d = DETAIL[state.detail.id];
+  const ex = state.extract;
+  if(!ex) { go('detail'); return; }
+  const names = ex.ids.map(id=>{ const r=d.first.find(x=>x.id===id); return r?r.name:''; }).filter(Boolean);
+  const cur = names[ex.idx] || d.name;
+  const c = document.getElementById('content');
+  c.innerHTML = `
+  <div class="extract-card">
+    <div class="ex-head">
+      <div class="ex-title">${cur}</div>
+      <div class="ex-nav">
+        <span class="ex-link ${ex.idx<=0?'dis':''}" data-act="prev-ep">上一集</span>
+        <span class="ex-link ${ex.idx>=names.length-1?'dis':''}" data-act="next-ep">下一集</span>
+        <span class="ex-link" data-act="pick-ep">选集 <i style="font-style:normal;font-size:9px">▾</i></span>
+        ${ex.picking ? `<div class="ep-list">
+          ${names.map((n,i)=>`<div class="ep-item ${i===ex.idx?'on':''}" data-act="pick-ep-item" data-id="${i}">第 ${i+1} 集 · ${n}</div>`).join('')}
+        </div>` : ''}
+      </div>
+      <div class="ex-tip">拖动白框移动位置，拖动四条边调整范围</div>
+    </div>
+
+    <div class="video-stage">
+      <div class="vframe" id="vframe">
+        <div class="scene">
+          <div class="sc-cap">傅斯琛，你终于肯见我了。</div>
+        </div>
+        <div class="cropbox" id="cropbox">
+          <i class="edge t" data-edge="top"></i>
+          <i class="edge b" data-edge="bottom"></i>
+          <i class="edge l" data-edge="left"></i>
+          <i class="edge r" data-edge="right"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="vctrl">
+      <div class="vbar" data-act="seek"><i id="vbar" style="width:${(ex.t/ex.dur*100).toFixed(2)}%"></i></div>
+      <div class="vrow">
+        <span class="vbtn" data-act="play-toggle" id="vplay">${ex.playing?'❚❚':'▶'}</span>
+        <span class="vtime"><span id="vcur">${fmtT(ex.t)}</span>/${fmtT(ex.dur)}</span>
+        <span class="spacer"></span>
+        <span class="vbtn rate" data-act="speed">${ex.speed}x</span>
+        <span class="vbtn" data-act="mute" id="vmute">${ex.muted?'🔇':'🔊'}</span>
+      </div>
+    </div>
+
+    <div class="ex-foot">
+      <button class="btn btn-primary" data-act="start-ocr">开始识别</button>
+    </div>
+  </div>`;
+  bindCrop();
+  startVideoTimer();
+}
+
+function startVideoTimer(){
+  clearInterval(exTimer);
+  const ex = state.extract;
+  if(!ex) return;
+  exTimer = setInterval(()=>{
+    if(!ex.playing) return;
+    ex.t = Math.min(ex.dur, ex.t + ex.speed*0.25);
+    const curEl = document.getElementById('vcur');
+    const bar = document.getElementById('vbar');
+    if(curEl) curEl.textContent = fmtT(ex.t);
+    if(bar) bar.style.width = (ex.t/ex.dur*100).toFixed(2)+'%';
+    if(ex.t >= ex.dur){
+      ex.playing = false;
+      const p = document.getElementById('vplay');
+      if(p) p.textContent = '▶';
+    }
+  }, 250);
+}
+
+const clampN = (v,a,b)=>Math.max(a, Math.min(b, v));
+
+function bindCrop(){
+  const frame = document.getElementById('vframe');
+  const box = document.getElementById('cropbox');
+  const ex = state.extract;
+  if(!frame || !box || !ex) return;
+  const apply = ()=>{
+    const b = ex.box;
+    box.style.left = b.x+'%';
+    box.style.top = b.y+'%';
+    box.style.width = b.w+'%';
+    box.style.height = b.h+'%';
+  };
+  apply();
+
+  box.addEventListener('mousedown', e=>{
+    e.preventDefault();
+    const edge = e.target.dataset.edge || null;
+    const r = frame.getBoundingClientRect();
+    const drag = {edge, sx:e.clientX, sy:e.clientY, o:{...ex.box}, rw:r.width, rh:r.height};
+
+    const onMove = ev=>{
+      const dx = (ev.clientX-drag.sx)/drag.rw*100;
+      const dy = (ev.clientY-drag.sy)/drag.rh*100;
+      const o = drag.o;
+      if(!drag.edge){
+        ex.box.x = clampN(o.x+dx, 0, 100-o.w);
+        ex.box.y = clampN(o.y+dy, 0, 100-o.h);
+      } else {
+        let l=o.x, t=o.y, rt=o.x+o.w, bt=o.y+o.h;
+        if(drag.edge==='left')  l  = clampN(o.x+dx, 0, rt-8);
+        if(drag.edge==='right') rt = clampN(o.x+o.w+dx, l+8, 100);
+        if(drag.edge==='top')   t  = clampN(o.y+dy, 0, bt-4);
+        if(drag.edge==='bottom')bt = clampN(o.y+o.h+dy, t+4, 100);
+        ex.box = {x:l, y:t, w:rt-l, h:bt-t};
+      }
+      apply();
+    };
+    const onUp = ()=>{
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.body.style.cursor = '';
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.body.style.cursor = edge ? (edge==='top'||edge==='bottom'?'ns-resize':'ew-resize') : 'move';
+  });
+}
+
+function submitExtract(rows, way, api, skipped){
+  const d = DETAIL[state.detail.id];
+  let finished = 0;
+  rows.forEach((src, idx)=>{
+    const old = d.sub.find(s=>s.name===src.name);
+    const task = old || {
+      id: String(90000 + Math.floor(Math.random()*8999)),
+      name: src.name, src: way, api: api, lang: d.lang, by:'刘同金', auditor:'-', end:'管理端',
+      audit:'未审改', prog:'处理中', pct:0, role:'-', hasCard:'否',
+      markBy:'-', markEnd:'管理端', mark:'未标记',
+      auditAt:'-', auditDone:'-', markAt:'-', markDone:'-', ct: nowStr(), _new:true
+    };
+    if(old){
+      Object.assign(old, {src: way, api: api, prog:'处理中', pct:0, ct: nowStr(), audit:'未审改', auditor:'-', role:'-', _new:true});
+    } else {
+      d.sub.unshift(task);
+    }
+    const timer = setInterval(()=>{
+      task.pct = Math.min(100, task.pct + 9 + Math.floor(Math.random()*12));
+      if(task.pct >= 100){
+        task.pct = 100;
+        task.prog = '成功';
+        task.role = '0%';
+        clearInterval(timer);
+        finished++;
+        if(finished === rows.length){
+          toast(`字幕提取完成：${rows.length} 个字幕已入「源字幕库」`);
+        }
+      }
+      if(state.detail.step==='sub') renderStep();
+      else if(state.detail.step==='first') refreshPip();
+    }, 620 + idx*160);
+  });
+  state.detail.sel.clear();
+  renderStep();
+  toast(`已提交 ${rows.length} 个字幕提取任务${way==='ASR音频转写'?(api?'（ASR · '+api+'）':''):''}${skipped?`（其中 ${skipped} 个重新提取）`:''}`);
+  setTimeout(()=>{
+    if(state.detail.step==='first') refreshPip();
+  }, 300);
+}
+
+function refreshPip(){
+  const d = DETAIL[state.detail.id];
+  const ing = d.sub.filter(x=>x.prog==='处理中').length;
+  let el = document.querySelector('.pip');
+  if(!ing){ if(el) el.remove(); return; }
+  if(!el){
+    const box = document.querySelector('#step-body .actions');
+    if(!box) return;
+    el = document.createElement('span');
+    el.className = 'pip';
+    box.appendChild(el);
+  }
+  el.innerHTML = `<i></i>字幕提取中（${ing}）`;
+}
+
+/* 视频预览 */
+let videoTimer = null;
+function openVideo(title){
+  let cur = 12, dur = 143, playing = true, speed = 1;
+  overlay.innerHTML = `
+    <div class="vmask">
+      <div class="vbox">
+        <div class="vh">${title}<span class="x" data-x>✕</span></div>
+        <div class="screen">
+          <div class="ph"><div class="big">剧集画面预览</div>演示占位视频 · 实际为源片播放</div>
+        </div>
+        <div class="vc">
+          <span class="ico" data-play>❚❚</span>
+          <span class="txt"><span data-cur>00:12</span> / 02:23</span>
+          <div class="bar"><i style="width:8%"></i></div>
+          <span class="ico" data-speed style="font-size:11px;width:auto">1x</span>
+          <span class="ico">🔊</span>
+          <svg class="ico" viewBox="0 0 16 16" fill="#606266"><path d="M1 1h10v10H1zM12 4l3-2v10l-3-2z"/></svg>
+        </div>
+      </div>
+    </div>`;
+  const close = ()=>{ clearInterval(videoTimer); overlay.innerHTML=''; };
+  overlay.querySelector('[data-x]').onclick = close;
+  overlay.querySelector('.vmask').addEventListener('click', e=>{
+    if(e.target.classList.contains('vmask')) close();
+  });
+  const curEl = overlay.querySelector('[data-cur]');
+  const barEl = overlay.querySelector('.bar i');
+  const playEl = overlay.querySelector('[data-play]');
+  const sp = overlay.querySelector('[data-speed]');
+  const tick = ()=>{
+    if(!playing) return;
+    cur += speed*0.5;
+    if(cur>=dur){ cur=dur; playing=false; playEl.textContent='▶'; }
+    const m = String(Math.floor(cur/60)).padStart(2,'0');
+    const s = String(Math.floor(cur%60)).padStart(2,'0');
+    curEl.textContent = m+':'+s;
+    barEl.style.width = (cur/dur*100)+'%';
+  };
+  videoTimer = setInterval(tick, 500);
+  playEl.onclick = ()=>{ playing=!playing; playEl.textContent = playing?'❚❚':'▶'; };
+  sp.onclick = ()=>{ speed = speed===1?1.5:speed===1.5?2:1; sp.textContent = speed+'x'; };
+  overlay.querySelector('.bar').onclick = e=>{
+    const r = e.currentTarget.getBoundingClientRect();
+    cur = Math.max(0, Math.min(dur, (e.clientX-r.left)/r.width*dur));
+  };
+}
+
+/* 上传记录抽屉 */
+function openUploadDrawer(tab){
+  const t = tab || 'ing';
+  const ing = state.uploads.ing, done = state.uploads.done;
+  const render = ()=>{
+    const list = t==='ing'?ing:done;
+    const body = list.length ? list.map(u=>`
+      <div class="up-item">
+        <div class="nm">
+          <div class="t">${u.name}</div>
+          <div class="s">${u.size} · ${t==='ing'?`上传中 ${u.pct}%`:`已完成 · ${u.at}`}</div>
+        </div>
+        <div>${t==='ing'?`<span class="tag-s t-blue">${u.pct}%</span>`:tag('完成','t-green')}</div>
+      </div>`).join('') : `<div class="empty"><div class="ei">☁</div>暂无记录</div>`;
+    return body;
+  };
+  overlay.innerHTML = `
+    <div class="drawer-mask"></div>
+    <div class="drawer">
+      <div class="dw-h">传输列表<span class="x" data-x>✕</span></div>
+      <div class="dw-tabs">
+        <span class="stab ${t==='ing'?'on':''}" data-dt="ing">上传中（${ing.length}）</span>
+        <span class="stab ${t==='done'?'on':''}" data-dt="done">已完成（${done.length}）</span>
+      </div>
+      <div class="dw-body">${render()}</div>
+    </div>`;
+  const close = ()=> overlay.innerHTML='';
+  overlay.querySelector('[data-x]').onclick = close;
+  overlay.querySelector('.drawer-mask').onclick = close;
+  overlay.querySelectorAll('[data-dt]').forEach(el=>{
+    el.onclick = ()=>{ openUploadDrawer(el.dataset.dt); };
+  });
+}
+
+/* =========================================================
+   各类业务弹窗
+   ========================================================= */
+function collectionForm(mode, row){
+  const isEdit = mode==='edit';
+  const data = row || {name:'',lang:'中文',team:'',intro:'',remark:''};
+  dialog({
+    title: (isEdit?'编辑':'新增')+'合集',
+    body:`
+      <div class="form-item"><div class="lab"><span class="req">*</span>合集名称</div>
+        <div class="ctl"><input class="inp" id="cfName" value="${data.name}" placeholder="请输入合集名称" maxlength="50"></div></div>
+      <div class="form-item"><div class="lab">合集源语言</div>
+        <div class="ctl">${isEdit
+          ? `<input class="inp" value="${data.lang||'中文'}" disabled>`
+          : `<select class="sel2" id="cfLang"><option>中文</option><option>英语</option><option>日语</option><option>韩语</option><option>西班牙语</option></select>`}</div></div>
+      <div class="form-item"><div class="lab"><span class="req">*</span>团队</div>
+        <div class="ctl"><select class="sel2" id="cfTeam">
+          <option value="">请选择团队</option>
+          <option value="社媒" ${data.team==='社媒'?'selected':''}>社媒</option>
+          <option value="APP" ${data.team==='APP'?'selected':''}>APP</option>
+        </select></div></div>
+      <div class="form-item"><div class="lab">简介</div>
+        <div class="ctl"><textarea class="inp" id="cfIntro" rows="2" maxlength="1000" placeholder="请输入简介">${data.intro==='-'?'':data.intro}</textarea>
+          <div class="counter"><span id="cIntro">${(data.intro&&data.intro!=='-')?data.intro.length:0}</span>/1000</div></div></div>
+      <div class="form-item"><div class="lab">备注</div>
+        <div class="ctl"><textarea class="inp" id="cfRemark" rows="2" maxlength="100" placeholder="请输入备注">${data.remark==='-'?'':data.remark}</textarea>
+          <div class="counter"><span id="cRemark">${(data.remark&&data.remark!=='-')?data.remark.length:0}</span>/100</div></div></div>
+    `,
+    footer:`<button class="btn" data-close-dlg>取 消</button><button class="btn btn-primary" data-ok>确 定</button>`,
+    onMount(close){
+      const i1=document.getElementById('cfIntro'), i2=document.getElementById('cfRemark');
+      i1.oninput=()=>document.getElementById('cIntro').textContent=i1.value.length;
+      i2.oninput=()=>document.getElementById('cRemark').textContent=i2.value.length;
+      overlay.querySelector('[data-ok]').onclick = ()=>{
+        const name = document.getElementById('cfName').value.trim();
+        if(!name){ toast('请输入合集名称','err'); return; }
+        const team = document.getElementById('cfTeam').value;
+        if(!team){ toast('请选择团队','err'); return; }
+        if(isEdit){
+          const target = COLLECTIONS.find(c=>c.id===row.id);
+          target.name=name; target.team=team;
+          target.intro=i1.value.trim()||'-'; target.remark=i2.value.trim()||'-';
+          if(DETAIL[target.id]) DETAIL[target.id].name = name;
+          close(); go('list'); toast('修改成功');
+        }else{
+          const now = new Date();
+          const p = n=>String(n).padStart(2,'0');
+          const ct = `${now.getFullYear()}-${p(now.getMonth()+1)}-${p(now.getDate())} ${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
+          COLLECTIONS.unshift({id:4064,name,eps:0,lang:'中文',team,intro:i1.value.trim()||'-',remark:i2.value.trim()||'-',ct});
+          close(); go('list'); toast('新增成功');
+        }
+      };
+    }
+  });
+}
+
+function nameCardDlg(row){
+  const people = [
+    {n:'傅斯琛',r:'男主'},{n:'云星',r:'女主'},{n:'苏曼',r:'女二'},{n:'陈默',r:'助理'},{n:'傅老爷子',r:'配角'},{n:'林晚',r:'配角'}
+  ];
+  dialog({
+    title:`姓名卡 · ${row.name}`,
+    width:660,
+    body:`
+      <div class="hint" style="margin-bottom:12px">姓名卡用于字幕/配音中的人物名条替换，上传 PNG 透明底图片后按角色名匹配。</div>
+      <div class="cards-grid">
+        ${people.map(p=>`
+          <div class="pcard">
+            <div class="ph">${p.n}</div>
+            <div class="info">${p.n}<span class="role">${p.r}</span>
+              <span class="del" data-del="${p.n}">删除</span>
+            </div>
+          </div>`).join('')}
+      </div>`,
+    footer:`<button class="btn" data-close-dlg>取 消</button>
+            <button class="btn" data-upload>上传姓名卡</button>
+            <button class="btn btn-primary" data-save>确 定</button>`,
+    onMount(close){
+      overlay.querySelectorAll('[data-del]').forEach(b=>{
+        b.onclick = ()=>{ b.closest('.pcard').remove(); toast('已移除 '+b.dataset.del,'info'); };
+      });
+      overlay.querySelector('[data-upload]').onclick = ()=> toast('已打开本地文件选择（演示）','info');
+      overlay.querySelector('[data-save]').onclick = ()=>{ close(); toast('姓名卡已保存'); };
+    }
+  });
+}
+
+function uploadVideoDlg(){
+  dialog({
+    title:'上传视频',
+    width:560,
+    body:`
+      <div style="border:1px dashed #dcdfe6;border-radius:4px;padding:34px 0;text-align:center;background:#fafbfc;cursor:pointer" id="dropArea">
+        <div style="font-size:26px;color:#c0c4cc;margin-bottom:8px">⇪</div>
+        <div style="font-size:13px;color:#606266">将文件拖到此处，或<span style="color:#409eff">点击上传</span></div>
+        <div style="font-size:11.5px;color:#a8b0ba;margin-top:6px">支持 mp4 / mov / mkv，单个文件不超过 2GB，可批量选择</div>
+      </div>
+      <div class="form-item" style="margin-top:16px">
+        <div class="lab">上传后自动</div>
+        <div class="ctl" style="line-height:30px;font-size:12.5px;color:#606266">
+          <label style="margin-right:16px"><input type="checkbox" checked> 转码</label>
+          <label><input type="checkbox"> 自动提取字幕</label>
+        </div>
+      </div>`,
+    footer:`<button class="btn" data-close-dlg>取 消</button><button class="btn btn-primary" data-ok>开始上传</button>`,
+    onMount(close){
+      overlay.querySelector('#dropArea').onclick = ()=>{
+        document.getElementById('dropArea').querySelector('div:last-child').innerHTML = '<span style="color:#409eff">已选择 1 个文件：踹掉渣男后我被傅总宠上天7.mp4（演示）</span>';
+      };
+      overlay.querySelector('[data-ok]').onclick = ()=>{
+        close();
+        const name = '踹掉渣男后我被傅总宠上天7.mp4';
+        const item = {name, size:'286.4 MB', pct:0};
+        state.uploads.ing.push(item);
+        state.uploads.done.push({name, size:'286.4 MB', at:'刚刚'});
+        toast('已加入上传队列');
+        let p = 0;
+        const t = setInterval(()=>{
+          p += 20; item.pct = p;
+          if(p>=100){
+            clearInterval(t);
+            state.uploads.ing = state.uploads.ing.filter(x=>x!==item);
+            const d = DETAIL[state.detail.id];
+            d.first.push({
+              id: String(88000 + Math.floor(Math.random()*999)),
+              name: '踹掉渣男后我被傅总宠上天7',
+              status:'上传成功', erase:0, press:0, dub:0, ct: nowStr()
+            });
+            if(state.detail.step==='first') renderStep();
+            toast('上传完成：'+name+'，已加入源片列表');
+          }
+        }, 700);
+      };
+    }
+  });
+}
+
+function selectLibDlg(){
+  const libs = [
+    {id:30021,name:'都市情感合集',eps:38,ct:'2026-10-12 10:20:11'},
+    {id:30018,name:'复仇爽剧合集',eps:52,ct:'2026-09-28 16:41:02'},
+    {id:30005,name:'古装权谋合集',eps:24,ct:'2026-08-30 09:12:36'}
+  ];
+  dialog({
+    title:'选择内容库合集',
+    width:640,
+    body:`
+      <div class="f-input" style="width:100%;margin-bottom:12px"><input placeholder="搜索内容库合集" style="width:100%"></div>
+      <table class="tbl">
+        <colgroup><col style="width:44px"><col style="width:100px"><col><col style="width:70px"><col style="width:160px"></colgroup>
+        <thead><tr><th></th><th>合集ID</th><th>合集名称</th><th>剧集数</th><th>创建时间</th></tr></thead>
+        <tbody>${libs.map((l,i)=>`<tr>
+          <td><input type="checkbox" class="ck" ${i===0?'checked':''}></td>
+          <td>${l.id}</td><td class="l">${l.name}</td><td>${l.eps}</td><td>${l.ct}</td>
+        </tr>`).join('')}</tbody>
+      </table>`,
+    footer:`<button class="btn" data-close-dlg>取 消</button><button class="btn btn-primary" data-ok>引 入</button>`,
+    onMount(close){
+      overlay.querySelector('[data-ok]').onclick = ()=>{ close(); toast('已从内容库引入 1 个合集（演示）'); };
+    }
+  });
+}
+
+function needSelect(action){
+  if(state.detail.sel.size===0){
+    toast(`请先勾选需要「${action}」的源片`,'err');
+    return false;
+  }
+  return true;
+}
+
+function subtitleAuditDlg(id){
+  const d = DETAIL[state.detail.id];
+  const row = d.sub.find(x=>x.id===id) || d.sub[0];
+  const lines = [
+    {t:'00:00:02,120 --> 00:00:04,860', r:'云星', s:'傅斯琛，你终于肯见我了。'},
+    {t:'00:00:05,100 --> 00:00:07,640', r:'傅斯琛', s:'我让你走了吗？'},
+    {t:'00:00:08,020 --> 00:00:10,300', r:'云星', s:'三年了，我什么都不要了。'},
+    {t:'00:00:11,000 --> 00:00:13,880', r:'傅斯琛', s:'那就把这三年，说清楚。'},
+    {t:'00:00:14,220 --> 00:00:16,540', r:'旁白', s:'她抬起头，眼里全是恨意。'}
+  ];
+  dialog({
+    title:`字幕审改 · ${row.name}`,
+    width:760,
+    body:`
+      <div style="display:flex;gap:16px;margin-bottom:10px;font-size:12px;color:#909399">
+        <span>源字幕ID：${row.id}</span><span>字幕来源：${row.src}</span><span>源语言：${row.lang}</span>
+        <span style="margin-left:auto">共 ${lines.length} 行</span>
+      </div>
+      <table class="tbl">
+        <colgroup><col style="width:52px"><col style="width:258px"><col style="width:86px"><col></colgroup>
+        <thead><tr><th>#</th><th>时间轴</th><th>角色</th><th>字幕内容</th></tr></thead>
+        <tbody>${lines.map((l,i)=>`<tr>
+          <td>${i+1}</td>
+          <td style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;white-space:nowrap;word-break:keep-all">${l.t}</td>
+          <td>${l.r}</td>
+          <td><input class="inp" style="height:26px" value="${l.s}"></td>
+        </tr>`).join('')}</tbody>
+      </table>`,
+    footer:`<button class="btn" data-close-dlg>取 消</button>
+            <button class="btn" data-next>保存并下一集</button>
+            <button class="btn btn-primary" data-save>保 存</button>`,
+    onMount(close){
+      overlay.querySelector('[data-save]').onclick = ()=>{ close(); row.audit='已审改'; row.auditor='刘同金'; renderDetail(); toast('审改已保存'); };
+      overlay.querySelector('[data-next]').onclick = ()=>{ close(); row.audit='已审改'; renderDetail(); toast('已保存，已跳到下一集（演示）'); };
+    }
+  });
+}
+
+function processDetailDlg(kind, lang){
+  const rows = DETAIL[state.detail.id].first.slice(0,5).map((r,i)=>({
+    name:r.name, st: i===4?'处理中':'成功', at:r.ct
+  }));
+  dialog({
+    title:`${kind}详情 · ${lang}`,
+    width:620,
+    body:`
+      <table class="tbl">
+        <colgroup><col style="width:52px"><col><col style="width:110px"><col style="width:170px"></colgroup>
+        <thead><tr><th>#</th><th>剧集名称</th><th>状态</th><th>完成时间</th></tr></thead>
+        <tbody>${rows.map((r,i)=>`<tr>
+          <td>${i+1}</td><td class="l">${r.name}</td>
+          <td>${r.st==='成功'?tag('成功','t-green'):tag('处理中','t-orange')}</td>
+          <td>${r.at}</td>
+        </tr>`).join('')}</tbody>
+      </table>`,
+    footer:`<button class="btn btn-primary" data-close-dlg>关 闭</button>`
+  });
+}
+
+function transDetailDlg(id){
+  const d = DETAIL[state.detail.id];
+  const row = d.translate.find(x=>x.id===id) || d.translate[0];
+  const pairs = [
+    ['傅斯琛，你终于肯见我了。','Fu Sichen, you finally agreed to see me.'],
+    ['我让你走了吗？','Did I say you could leave?'],
+    ['三年了，我什么都不要了。','It has been three years. I want nothing anymore.'],
+    ['那就把这三年，说清楚。','Then explain these three years to me.']
+  ];
+  dialog({
+    title:`翻译详情 · ${row.name}`,
+    width:720,
+    body:`
+      <div style="display:flex;gap:18px;font-size:12px;color:#909399;margin-bottom:10px">
+        <span>翻译字幕ID：${row.id}</span><span>目标语言：${state.detail.chip}</span>
+        <span>API：${row.api}</span><span>字幕行数：${row.lines}</span>
+        <span style="margin-left:auto">翻译进度：${row.prog}</span>
+      </div>
+      <table class="tbl">
+        <colgroup><col style="width:52px"><col><col></colgroup>
+        <thead><tr><th>#</th><th>原文</th><th>译文</th></tr></thead>
+        <tbody>${pairs.map((p,i)=>`<tr><td>${i+1}</td><td class="l">${p[0]}</td><td class="l">${p[1]}</td></tr>`).join('')}</tbody>
+      </table>`,
+    footer:`<button class="btn" data-close-dlg>关 闭</button><button class="btn btn-primary" data-ok>重新翻译</button>`,
+    onMount(close){
+      overlay.querySelector('[data-ok]').onclick = ()=>{ close(); toast('已重新提交翻译任务（演示）'); };
+    }
+  });
+}
+
+function extractDetailDlg(id){
+  const d = DETAIL[state.detail.id];
+  const row = d.sub.find(x=>x.id===id) || d.sub[0];
+  dialog({
+    title:`提取详情 · ${row.name}`,
+    width:640,
+    body:`
+      <div class="form-item"><div class="lab">源字幕ID</div><div class="ctl" style="line-height:30px">${row.id}</div></div>
+      <div class="form-item"><div class="lab">字幕来源</div><div class="ctl" style="line-height:30px">${row.src}</div></div>
+      <div class="form-item"><div class="lab">提取API</div><div class="ctl" style="line-height:30px">${row.api || '阿里'}</div></div>
+      <div class="form-item"><div class="lab">识别语言</div><div class="ctl" style="line-height:30px">${row.lang}</div></div>
+      <div class="form-item"><div class="lab">识别置信度</div><div class="ctl" style="line-height:30px">0.962</div></div>
+      <div class="form-item"><div class="lab">识别行数</div><div class="ctl" style="line-height:30px">58</div></div>
+      <div class="form-item"><div class="lab">${(row.src||'').indexOf('ASR')===0?'ASR 引擎':'OCR 引擎'}</div><div class="ctl" style="line-height:30px">${(row.src||'').indexOf('ASR')===0?(row.api==='鬼手'?'GhostCut ASR-v2 · 中文':'通用 ASR'):'PaddleOCR-v4 · 中文增强'}</div></div>
+      <div class="form-item"><div class="lab">原始日志</div>
+        <div class="ctl"><div style="background:#f7f8fa;border:1px solid #ebeef5;border-radius:3px;padding:9px 10px;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#606266;line-height:1.7">
+          ${(row.src||'').indexOf('ASR')===0?`[17:14:52] start asr, video=88181.mp4<br>
+          [17:14:55] demux audio track, 44.1kHz mono<br>
+          [17:15:26] asr done, lines=58, avg_conf=0.962<br>
+          [17:15:28] save to subtitle_lib ok`:`[17:14:52] start extract, video=88181.mp4<br>
+          [17:15:06] keyframes=1420, detect=1398<br>
+          [17:15:41] ocr done, lines=58, avg_conf=0.962<br>
+          [17:15:43] save to subtitle_lib ok`}
+        </div></div></div>`,
+    footer:`<button class="btn btn-primary" data-close-dlg>关 闭</button>`
+  });
+}
+
+/* =========================================================
+   事件分发
+   ========================================================= */
+const ACT = {
+  'add-collection': ()=> collectionForm('add'),
+  'edit-collection': id=> collectionForm('edit', COLLECTIONS.find(c=>c.id===+id)),
+  'del-collection': id=>{
+    const row = COLLECTIONS.find(c=>c.id===+id);
+    confirmDlg('删除合集', `确定要删除合集「${row.name}」吗？删除后该合集下的源片与字幕将不可恢复。`, ()=>{
+      const i = COLLECTIONS.indexOf(row);
+      if(i>-1) COLLECTIONS.splice(i,1);
+      go('list'); toast('删除成功');
+    });
+  },
+  'namecard': id=> nameCardDlg(COLLECTIONS.find(c=>c.id===+id)),
+  'search-list': ()=> renderList(),
+  'reset-list': ()=>{ state.list={fName:'',fRemark:'',team:'',page:1}; renderList(); toast('已重置筛选条件','info'); },
+  'open-detail': id=>{
+    const row = COLLECTIONS.find(c=>c.id===+id);
+    if(!DETAIL[row.id]){
+      toast('该合集暂无明细数据，已进入「产品测试合集」演示','info');
+      state.detail.id = 1507;
+    } else {
+      state.detail.id = row.id;
+    }
+    state.detail.step='first'; state.detail.sel.clear();
+    if(!state.openTabs.find(t=>t.key==='detail'))
+      state.openTabs.push({key:'detail',label:'合集详情',hash:'#'});
+    go('detail');
+  },
+  'step': k=>{ state.detail.step=k; state.detail.sel.clear(); renderDetail(); },
+  'subtab': k=>{ state.detail.subTab=k; renderStep(); },
+  'trans-tab': k=>{ state.detail.transTab=k; renderStep(); },
+  'term-tab': k=>{ state.detail.termTab=k; renderStep(); },
+  'dub-tab': k=>{ state.detail.dubTab=k; renderStep(); },
+  'chip': c=>{ state.detail.chip=c; renderStep(); toast('已切换到'+c+'字幕'); },
+  'status': ()=> toast('演示版本：状态筛选已展示全部数据','info'),
+  'do-search': ()=> toast('查询完成'),
+  'reset-filter': ()=> renderStep(),
+  'upload-video': ()=> uploadVideoDlg(),
+  'upload-log': ()=> openUploadDrawer('ing'),
+  'select-lib': ()=> selectLibDlg(),
+  'extract-sub': ()=>{ if(needSelect('提取字幕')) extractSubDlg(); },
+  'erase-sub': ()=>{
+    if(!needSelect('字幕擦除')) return;
+    confirmDlg('字幕擦除', `已选 ${state.detail.sel.size} 个源片，是否提交字幕擦除任务？`, ()=>{
+      toast('字幕擦除任务已提交（演示）');
+    });
+  },
+  'music-sub': ()=>{
+    if(!needSelect('音乐分离')) return;
+    confirmDlg('音乐分离', `已选 ${state.detail.sel.size} 个源片，是否提交人声/背景音乐分离任务？`, ()=>{
+      toast('音乐分离任务已提交（演示）');
+    });
+  },
+  'prev-ep': ()=>{
+    const ex=state.extract; if(!ex) return;
+    const n = state.extract.ids.length;
+    if(ex.idx<=0) return;
+    ex.idx--; renderExtract();
+  },
+  'next-ep': ()=>{
+    const ex=state.extract; if(!ex) return;
+    if(ex.idx>=ex.ids.length-1) return;
+    ex.idx++; renderExtract();
+  },
+  'pick-ep': ()=>{
+    if(!state.extract) return;
+    state.extract.picking = !state.extract.picking;
+    renderExtract();
+  },
+  'pick-ep-item': i=>{
+    const ex=state.extract; if(!ex) return;
+    ex.idx = +i; ex.picking = false; renderExtract();
+  },
+  'play-toggle': ()=>{
+    const ex=state.extract; if(!ex) return;
+    ex.playing = !ex.playing;
+    const p=document.getElementById('vplay');
+    if(p) p.textContent = ex.playing?'❚❚':'▶';
+    if(ex.t>=ex.dur && ex.playing) ex.t = 0;
+  },
+  'speed': ()=>{
+    const ex=state.extract; if(!ex) return;
+    ex.speed = ex.speed===1?1.5:ex.speed===1.5?2:1;
+    const el=document.querySelector('[data-act="speed"]');
+    if(el) el.textContent = ex.speed+'x';
+  },
+  'mute': ()=>{
+    const ex=state.extract; if(!ex) return;
+    ex.muted = !ex.muted;
+    const el=document.getElementById('vmute');
+    if(el) el.textContent = ex.muted?'🔇':'🔊';
+  },
+  'seek': (id, el, e)=>{
+    const ex=state.extract; if(!ex) return;
+    const r = el.getBoundingClientRect();
+    const x = e.clientX;
+    ex.t = clampN((x-r.left)/r.width, 0, 1)*ex.dur;
+    const bar=document.getElementById('vbar'); if(bar) bar.style.width=(ex.t/ex.dur*100)+'%';
+    const cur=document.getElementById('vcur'); if(cur) cur.textContent=fmtT(ex.t);
+  },
+  'start-ocr': ()=>{
+    const ex = state.extract;
+    if(!ex) return;
+    const d = DETAIL[state.detail.id];
+    const rows = d.first.filter(r=>ex.ids.includes(r.id));
+    const way = ex.way, api = ex.api;
+    clearInterval(exTimer);
+    state.extract = null;
+    state.openTabs = state.openTabs.filter(t=>t.key!=='extract');
+    state.detail.step = 'sub';
+    go('detail');
+    submitExtract(rows.length?rows:[{name:d.first[0].name, id:d.first[0].id}], way, api, 0);
+  },
+  'download': ()=> toast('已开始打包下载（演示）'),
+  'preview': out=> openVideo(out==='音频'?'音频试听 · 英语 模板三':'长视频预览 · 英语 模板三'),
+  'view-video': id=>{
+    const row = DETAIL[state.detail.id].first.find(r=>r.id===id);
+    openVideo(row?row.name:'视频预览');
+  },
+  'rename-ep': id=>{
+    const d = DETAIL[state.detail.id];
+    const row = d.first.find(r=>r.id===id);
+    dialog({
+      title:'修改剧集名称',
+      body:`<div class="form-item"><div class="lab">剧集名称</div>
+        <div class="ctl"><input class="inp" id="epName" value="${row.name}" maxlength="60"></div></div>`,
+      footer:`<button class="btn" data-close-dlg>取 消</button><button class="btn btn-primary" data-ok>确 定</button>`,
+      onMount(close){
+        overlay.querySelector('[data-ok]').onclick = ()=>{
+          const v = document.getElementById('epName').value.trim();
+          if(!v){ toast('剧集名称不能为空','err'); return; }
+          row.name = v; close(); renderStep(); toast('修改成功');
+        };
+      }
+    });
+  },
+  'del-ep': id=>{
+    const d = DETAIL[state.detail.id];
+    const row = d.first.find(r=>r.id===id);
+    confirmDlg('删除源片', `确定要删除源片「${row.name}」吗？`, ()=>{
+      d.first = d.first.filter(r=>r.id!==id);
+      state.detail.sel.delete(id);
+      renderStep(); toast('删除成功');
+    });
+  },
+  'audit-sub': id=> subtitleAuditDlg(id),
+  'extract-detail': id=> extractDetailDlg(id),
+  'trans-detail': id=> transDetailDlg(id),
+  'process-detail': v=>{
+    const [kind,lang] = v.split('|');
+    processDetailDlg(kind, lang);
+  },
+  'simple-tip': t=> toast(`「${t}」功能演示版本未接入`,'info'),
+  'gen-term': ()=> toast('术语表生成任务已提交（演示）')
+};
+
+document.addEventListener('click', e=>{
+  const el = e.target.closest('[data-act]');
+  if(!el) return;
+  const act = el.dataset.act, id = el.dataset.id;
+  if(act==='ck-row'){
+    const rid = id;
+    if(el.checked) state.detail.sel.add(rid); else state.detail.sel.delete(rid);
+    const footer = document.querySelector('.tbl-footer');
+    if(footer && footer.textContent.includes('已选择'))
+      footer.firstElementChild.textContent = '已选择 '+state.detail.sel.size+' 项';
+    return;
+  }
+  if(act==='ck-all'){
+    const boxes = document.querySelectorAll('[data-act="ck-row"]');
+    boxes.forEach(b=>{ b.checked = el.checked; el.checked?state.detail.sel.add(b.dataset.id):state.detail.sel.delete(b.dataset.id); });
+    const footer = document.querySelector('.tbl-footer');
+    if(footer) footer.firstElementChild.textContent = '已选择 '+state.detail.sel.size+' 项';
+    return;
+  }
+  if(act==='select'){ return; }
+  const fn = ACT[act];
+  if(fn) fn(id, el, e);
+});
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ overlay.innerHTML=''; clearInterval(videoTimer); }
+});
+
+document.getElementById('btnFullscreen').addEventListener('click', ()=>{
+  if(!document.fullscreenElement){ document.documentElement.requestFullscreen?.(); toast('已进入全屏','info'); }
+  else { document.exitFullscreen?.(); }
+});
+document.getElementById('globalSearch').addEventListener('keydown', e=>{
+  if(e.key!=='Enter') return;
+  const v = e.target.value.trim();
+  if(state.route.page==='list'){ state.list.fName=v; renderList(); toast('已按「'+v+'」筛选'); }
+  else toast('全局搜索：'+v+'（演示）','info');
+});
+
+/* 启动 */
+go('list');
+</script>
+</body>
+</html>
